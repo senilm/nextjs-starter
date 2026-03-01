@@ -1,0 +1,201 @@
+// ──────────────────────────────────────
+// ShipStation — Prisma Schema
+// ──────────────────────────────────────
+// Provider: PostgreSQL (default). Buyer can switch to MySQL or SQLite
+// by changing the provider and DATABASE_URL in .env.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────
+// Better Auth Tables
+// ──────────────────────────────────────
+// These tables are managed by Better Auth. Custom fields (roleId,
+// isActive, deletedAt) are added via Better Auth's user config.
+// Full Better Auth wiring happens in Module 01.
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  roleId        String?
+  role          Role?     @relation("UserRole", fields: [roleId], references: [id])
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  sessions Session[]
+  accounts Account[]
+  projects Project[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("session")
+}
+
+model Account {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+  idToken           String?
+  password          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+// ──────────────────────────────────────
+// RBAC Tables
+// ──────────────────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  users           User[]           @relation("UserRole")
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  module      String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ──────────────────────────────────────
+// User Invitation
+// ──────────────────────────────────────
+
+model UserInvitation {
+  id        String   @id @default(cuid())
+  email     String
+  roleId    String
+  invitedBy String
+  token     String   @unique
+  status    String   @default("pending")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("user_invitations")
+}
+
+// ──────────────────────────────────────
+// Project (CRUD Example)
+// ──────────────────────────────────────
+
+model Project {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@map("projects")
+}
+
+// ──────────────────────────────────────
+// Plans (Display Config)
+// ──────────────────────────────────────
+
+model Plan {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  description  String?
+  monthlyPrice Int?
+  yearlyPrice  Int?
+  trialDays    Int?
+  limits       Json
+  features     Json
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("plans")
+}
+
+// ──────────────────────────────────────
+// System Settings (Singleton)
+// ──────────────────────────────────────
+
+model SystemSettings {
+  id              String   @id @default(cuid())
+  siteName        String   @default("ShipStation")
+  siteUrl         String   @default("http://localhost:3000")
+  supportEmail    String   @default("support@shipstation.dev")
+  announcementBar String?
+  maintenanceMode Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("system_settings")
+}

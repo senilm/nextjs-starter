@@ -17,6 +17,7 @@ Next.js SaaS starter kit for CodeCanyon. Stack: Next.js 16.1, React 19, TypeScri
 - Server-first security — every mutation checks permissions server-side via `hasPermission()`. Client checks are cosmetic.
 - All user input validated with Zod on both client and server.
 - Imports ordered: React/Next → external packages → `@/lib` → `@/features` → `@/components` → `@/hooks` → `@/types`.
+- Use github mcp to perform github related actions
 
 ## Naming
 

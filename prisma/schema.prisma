@@ -27,14 +27,17 @@ model User {
   image         String?
   roleId        String?
   role          Role?     @relation("UserRole", fields: [roleId], references: [id])
+  twoFactorEnabled Boolean   @default(false)
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  sessions Session[]
-  accounts Account[]
-  projects Project[]
+  sessions      Session[]
+  accounts      Account[]
+  projects      Project[]
+  twoFactors    TwoFactor[]
+  subscriptions Subscription[]
 
   @@map("user")
 }
@@ -81,6 +84,40 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@map("verification")
+}
+
+// ──────────────────────────────────────
+// Better Auth Plugin Tables
+// ──────────────────────────────────────
+
+model TwoFactor {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  secret      String?
+  backupCodes String?
+
+  @@map("twoFactor")
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  plan                   String
+  referenceId            String
+  user                   User      @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  status                 String?
+  periodStart            DateTime?
+  periodEnd              DateTime?
+  cancelAtPeriodEnd      Boolean?
+  seats                  Int?
+  trialStart             DateTime?
+  trialEnd               DateTime?
+  billingInterval        String?
+  stripeScheduleId       String?
+
+  @@map("subscription")
 }
 
 // ──────────────────────────────────────

@@ -12,16 +12,19 @@ const envSchema = z.object({
     32,
     'BETTER_AUTH_SECRET must be at least 32 characters. Generate with: openssl rand -base64 32',
   ),
-  BETTER_AUTH_URL: z.url(),
+  BETTER_AUTH_URL: z.string().url(),
   STRIPE_SECRET_KEY: z.string().startsWith('sk_', 'STRIPE_SECRET_KEY must start with sk_'),
-  STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_', 'STRIPE_WEBHOOK_SECRET must start with whsec_'),
+  STRIPE_WEBHOOK_SECRET: z.string().startsWith(
+    'whsec_',
+    'STRIPE_WEBHOOK_SECRET must start with whsec_',
+  ),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith(
     'pk_',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_',
   ),
   RESEND_API_KEY: z.string().startsWith('re_', 'RESEND_API_KEY must start with re_'),
   EMAIL_FROM: z.string().min(1, 'EMAIL_FROM is required'),
-  NEXT_PUBLIC_APP_URL: z.url(),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_APP_NAME: z.string().min(1, 'NEXT_PUBLIC_APP_NAME is required'),
 
   /* OAuth — optional (app works without social login) */

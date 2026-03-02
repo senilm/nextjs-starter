@@ -7,6 +7,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { Module, Action, perm } from '../src/lib/constants'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
@@ -14,47 +15,32 @@ const prisma = new PrismaClient({ adapter })
 /* ── Seed Data ───────────────────────────── */
 
 const PERMISSIONS = [
-  { key: 'admin.access', module: 'admin', action: 'access', description: 'Access admin panel' },
-  { key: 'users.view', module: 'users', action: 'view', description: 'View users' },
-  { key: 'users.create', module: 'users', action: 'create', description: 'Create users' },
-  { key: 'users.edit', module: 'users', action: 'edit', description: 'Edit users' },
-  { key: 'users.delete', module: 'users', action: 'delete', description: 'Delete users' },
-  { key: 'roles.view', module: 'roles', action: 'view', description: 'View roles' },
-  { key: 'roles.create', module: 'roles', action: 'create', description: 'Create roles' },
-  { key: 'roles.edit', module: 'roles', action: 'edit', description: 'Edit roles' },
-  { key: 'roles.delete', module: 'roles', action: 'delete', description: 'Delete roles' },
-  { key: 'plans.view', module: 'plans', action: 'view', description: 'View plans' },
-  { key: 'plans.edit', module: 'plans', action: 'edit', description: 'Edit plans' },
-  { key: 'settings.view', module: 'settings', action: 'view', description: 'View system settings' },
-  { key: 'settings.edit', module: 'settings', action: 'edit', description: 'Edit system settings' },
-  {
-    key: 'projects.view',
-    module: 'projects',
-    action: 'view',
-    description: 'View projects',
-  },
-  {
-    key: 'projects.create',
-    module: 'projects',
-    action: 'create',
-    description: 'Create projects',
-  },
-  { key: 'projects.edit', module: 'projects', action: 'edit', description: 'Edit projects' },
-  {
-    key: 'projects.delete',
-    module: 'projects',
-    action: 'delete',
-    description: 'Delete projects',
-  },
-  { key: 'billing.manage', module: 'billing', action: 'manage', description: 'Manage billing' },
-] as const
+  { key: perm(Module.Admin, Action.Access), module: Module.Admin, action: Action.Access, description: 'Access admin panel' },
+  { key: perm(Module.Users, Action.View), module: Module.Users, action: Action.View, description: 'View users' },
+  { key: perm(Module.Users, Action.Create), module: Module.Users, action: Action.Create, description: 'Create users' },
+  { key: perm(Module.Users, Action.Edit), module: Module.Users, action: Action.Edit, description: 'Edit users' },
+  { key: perm(Module.Users, Action.Delete), module: Module.Users, action: Action.Delete, description: 'Delete users' },
+  { key: perm(Module.Roles, Action.View), module: Module.Roles, action: Action.View, description: 'View roles' },
+  { key: perm(Module.Roles, Action.Create), module: Module.Roles, action: Action.Create, description: 'Create roles' },
+  { key: perm(Module.Roles, Action.Edit), module: Module.Roles, action: Action.Edit, description: 'Edit roles' },
+  { key: perm(Module.Roles, Action.Delete), module: Module.Roles, action: Action.Delete, description: 'Delete roles' },
+  { key: perm(Module.Plans, Action.View), module: Module.Plans, action: Action.View, description: 'View plans' },
+  { key: perm(Module.Plans, Action.Edit), module: Module.Plans, action: Action.Edit, description: 'Edit plans' },
+  { key: perm(Module.Settings, Action.View), module: Module.Settings, action: Action.View, description: 'View system settings' },
+  { key: perm(Module.Settings, Action.Edit), module: Module.Settings, action: Action.Edit, description: 'Edit system settings' },
+  { key: perm(Module.Projects, Action.View), module: Module.Projects, action: Action.View, description: 'View projects' },
+  { key: perm(Module.Projects, Action.Create), module: Module.Projects, action: Action.Create, description: 'Create projects' },
+  { key: perm(Module.Projects, Action.Edit), module: Module.Projects, action: Action.Edit, description: 'Edit projects' },
+  { key: perm(Module.Projects, Action.Delete), module: Module.Projects, action: Action.Delete, description: 'Delete projects' },
+  { key: perm(Module.Billing, Action.Manage), module: Module.Billing, action: Action.Manage, description: 'Manage billing' },
+]
 
 const USER_ROLE_PERMISSIONS = [
-  'projects.view',
-  'projects.create',
-  'projects.edit',
-  'projects.delete',
-  'billing.manage',
+  perm(Module.Projects, Action.View),
+  perm(Module.Projects, Action.Create),
+  perm(Module.Projects, Action.Edit),
+  perm(Module.Projects, Action.Delete),
+  perm(Module.Billing, Action.Manage),
 ]
 
 const PLANS = [

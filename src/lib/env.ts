@@ -22,8 +22,11 @@ const envSchema = z.object({
     'pk_',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_',
   ),
-  RESEND_API_KEY: z.string().startsWith('re_', 'RESEND_API_KEY must start with re_'),
-  EMAIL_FROM: z.string().min(1, 'EMAIL_FROM is required'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_APP_NAME: z.string().min(1, 'NEXT_PUBLIC_APP_NAME is required'),
 

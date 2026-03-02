@@ -20,18 +20,19 @@ datasource db {
 // Full Better Auth wiring happens in Module 01.
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  roleId        String?
-  role          Role?     @relation("UserRole", fields: [roleId], references: [id])
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  emailVerified    Boolean   @default(false)
+  image            String?
+  roleId           String?
+  role             Role?     @relation("UserRole", fields: [roleId], references: [id])
+  stripeCustomerId String?
   twoFactorEnabled Boolean   @default(false)
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
 
   sessions      Session[]
   accounts      Account[]

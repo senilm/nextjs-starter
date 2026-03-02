@@ -80,6 +80,7 @@ export const auth = betterAuth({
     changeEmail: { enabled: true },
     additionalFields: {
       roleId: { type: 'string', required: false },
+      stripeCustomerId: { type: 'string', required: false },
       isActive: { type: 'boolean', defaultValue: true },
       deletedAt: { type: 'date', required: false },
       twoFactorEnabled: { type: 'boolean', defaultValue: false },

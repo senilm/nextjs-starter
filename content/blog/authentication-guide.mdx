@@ -1,0 +1,94 @@
+---
+title: "Authentication Guide"
+description: "Configure email/password, OAuth, magic links, and two-factor authentication in your ShipStation project."
+date: "2025-01-05"
+author: "ShipStation Team"
+tags: ["auth", "security", "oauth", "2fa"]
+---
+
+## Authentication Overview
+
+ShipStation uses [Better Auth](https://www.better-auth.com/) for authentication. It supports multiple strategies out of the box:
+
+- **Email/password** — traditional sign-up and sign-in
+- **OAuth** — Google and GitHub social login
+- **Magic links** — passwordless email authentication
+- **Two-factor authentication** — TOTP-based 2FA
+
+## Email/Password Setup
+
+Email/password authentication works immediately. Users can sign up, sign in, and reset their passwords.
+
+```typescript
+// Client-side sign in
+import { signIn } from '@/lib/auth-client'
+
+const handleSignIn = async () => {
+  await signIn.email({
+    email: 'user@example.com',
+    password: 'securepassword',
+  })
+}
+```
+
+## OAuth Configuration
+
+To enable Google or GitHub login, add the credentials to your `.env`:
+
+```bash
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+```
+
+The OAuth buttons appear automatically on the sign-in page when credentials are configured.
+
+## Magic Links
+
+Magic links allow passwordless authentication via email:
+
+```typescript
+import { authClient } from '@/lib/auth-client'
+
+await authClient.signIn.magicLink({
+  email: 'user@example.com',
+})
+```
+
+The user receives an email with a one-time login link.
+
+## Two-Factor Authentication
+
+Users can enable 2FA from their account settings. ShipStation supports TOTP (Time-based One-Time Password) with any authenticator app.
+
+```typescript
+// Enable 2FA
+const { data } = await authClient.twoFactor.enable({
+  password: 'current-password',
+})
+// data.totpURI contains the QR code URI
+```
+
+## Session Management
+
+Sessions include user permissions for RBAC:
+
+```typescript
+// Server-side session check
+import { auth } from '@/lib/auth'
+
+const session = await auth.api.getSession({
+  headers: await headers(),
+})
+
+// session.user.permissions = ['projects.view', 'projects.create', ...]
+```
+
+## Security Best Practices
+
+1. Always validate permissions server-side with `hasPermission()`
+2. Client-side permission checks are cosmetic only
+3. Use Zod validation on both client and server
+4. Enable 2FA for admin accounts
+5. Set appropriate session expiry times

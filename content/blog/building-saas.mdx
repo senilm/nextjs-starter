@@ -1,0 +1,79 @@
+---
+title: "Building a SaaS Product with ShipStation"
+description: "A complete guide to building and launching your SaaS product using ShipStation's built-in tools and patterns."
+date: "2025-01-10"
+author: "ShipStation Team"
+tags: ["saas", "guide", "stripe", "billing"]
+---
+
+## Why Use a Starter Kit?
+
+Building a SaaS from scratch means spending weeks on authentication, billing, admin panels, and other boilerplate before writing a single line of product code. ShipStation gives you all of that out of the box.
+
+## Architecture Overview
+
+ShipStation follows a feature-based architecture:
+
+```typescript
+src/features/
+  auth/          // Authentication flows
+  billing/       // Stripe subscriptions
+  projects/      // Your core product feature
+  admin/         // Admin dashboard
+  settings/      // User settings
+```
+
+Each feature contains its own components, server actions, validations, hooks, and types.
+
+## Setting Up Stripe
+
+1. Create a [Stripe account](https://stripe.com) and get your API keys
+2. Create your products and prices in the Stripe dashboard
+3. Add the price IDs to your `.env` file:
+
+```bash
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_MONTHLY_PRICE_ID=price_...
+STRIPE_PRO_YEARLY_PRICE_ID=price_...
+```
+
+## Defining Your Plans
+
+Plans are configured in `src/lib/config.ts`:
+
+```typescript
+export const PLANS = {
+  free: {
+    name: 'Free',
+    monthlyPrice: 0,
+    limits: { projects: 3, storage: 1 },
+    features: ['3 projects', '1 GB storage'],
+  },
+  pro: {
+    name: 'Pro',
+    monthlyPrice: 19,
+    limits: { projects: 25, storage: 10 },
+    features: ['25 projects', '10 GB storage', 'Priority support'],
+  },
+}
+```
+
+## Server Actions Pattern
+
+Every mutation follows a consistent pattern:
+
+```typescript
+export const createProject = async (input: CreateProjectInput) => {
+  const session = await getSession()
+  const validated = createProjectSchema.parse(input)
+  await hasPermission(session.user.id, 'projects.create')
+  // ... execute mutation
+}
+```
+
+This ensures security, validation, and permission checking on every operation.
+
+## Deployment
+
+ShipStation deploys seamlessly to Vercel, Railway, or any Node.js host. Run `next build` to produce a production build, then deploy with your platform of choice.

@@ -1,0 +1,64 @@
+---
+title: "Getting Started with ShipStation"
+description: "Learn how to set up your ShipStation project from clone to deployment in under 10 minutes."
+date: "2025-01-15"
+author: "ShipStation Team"
+tags: ["guide", "setup", "quickstart"]
+---
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Node.js 22** LTS or later
+- **pnpm** package manager
+- **PostgreSQL** database (local or hosted)
+
+## Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/your-org/shipstation.git
+cd shipstation
+pnpm install
+```
+
+## Step 2: Configure Environment
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+At minimum, you need to set:
+
+- `DATABASE_URL` — your PostgreSQL connection string
+- `BETTER_AUTH_SECRET` — a random 32-character secret
+- `BETTER_AUTH_URL` — your app URL
+
+## Step 3: Set Up the Database
+
+Run Prisma migrations to create your database schema:
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+
+This creates all tables and seeds the default admin user and roles.
+
+## Step 4: Start Development
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the ShipStation landing page.
+
+## Next Steps
+
+- Set up [Stripe billing](/blog/building-saas) for subscriptions
+- Configure [authentication providers](/blog/authentication-guide)
+- Customize your branding in `src/lib/config.ts`
+
+That is it! You are ready to start building your SaaS product.

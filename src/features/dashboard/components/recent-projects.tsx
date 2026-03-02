@@ -1,7 +1,7 @@
 /**
  * @file recent-projects.tsx
  * @module features/dashboard/components/recent-projects
- * Last 5 projects list for the dashboard home page.
+ * Last 5 projects list with clickable rows, status dots, and hover states.
  */
 
 'use client'
@@ -12,16 +12,16 @@ import { FolderKanban, ArrowRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { cn } from '@/lib/utils'
 import { useRecentProjects } from '@/features/dashboard/hooks'
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
-  active: 'default',
-  paused: 'secondary',
-  archived: 'outline',
+const STATUS_DOT_COLOR: Record<string, string> = {
+  active: 'bg-emerald-500',
+  paused: 'bg-amber-500',
+  archived: 'bg-gray-400',
 }
 
 export const RecentProjects = (): React.ReactNode => {
@@ -68,17 +68,29 @@ export const RecentProjects = (): React.ReactNode => {
               }
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-1">
               {projects.map((project) => (
-                <div key={project.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">{project.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Updated {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true })}
-                    </p>
+                <Link
+                  key={project.id}
+                  href={`/dashboard/projects/${project.id}`}
+                  className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        'size-2.5 shrink-0 rounded-full',
+                        STATUS_DOT_COLOR[project.status] ?? 'bg-gray-400',
+                      )}
+                    />
+                    <div>
+                      <p className="text-sm font-medium">{project.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Updated {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true })}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant={STATUS_VARIANT[project.status] ?? 'outline'}>{project.status}</Badge>
-                </div>
+                  <span className="text-xs capitalize text-muted-foreground">{project.status}</span>
+                </Link>
               ))}
             </div>
           )}

@@ -17,3 +17,9 @@ export interface RecentProject {
   status: string
   updatedAt: Date
 }
+
+export interface ActivityDataPoint {
+  date: string
+  projects: number
+  views: number
+}

@@ -1,7 +1,7 @@
 /**
  * @file quick-actions.tsx
  * @module features/dashboard/components/quick-actions
- * Quick action cards for common tasks. Admin link gated by permission.
+ * Quick action cards for common tasks in a compact vertical layout.
  */
 
 'use client'
@@ -51,7 +51,7 @@ const ACTIONS: QuickAction[] = [
 
 export const QuickActions = (): React.ReactNode => {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2">
       {ACTIONS.map((action, index) => (
         <QuickActionCard key={action.href} action={action} index={index} />
       ))}
@@ -77,7 +77,7 @@ const QuickActionCard = ({ action, index }: QuickActionCardProps): React.ReactNo
       transition={{ duration: 0.25, ease: 'easeOut', delay: index * 0.05 }}
     >
       <Link href={action.href}>
-        <Card className="transition-colors hover:bg-accent">
+        <Card className="transition-colors hover:bg-accent py-0">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Icon className="size-5" />

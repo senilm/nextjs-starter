@@ -27,12 +27,12 @@ export const StatsCard = ({ title, value, icon: Icon, trend, className }: StatsC
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
-      <Card className={cn('relative overflow-hidden', className)}>
-        <CardContent className="p-6">
+      <Card className={cn('relative overflow-hidden py-0', className)}>
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">{title}</p>
-              <p className="text-2xl font-bold">{value}</p>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">{title}</p>
+              <p className="text-xl font-bold">{value}</p>
               {trend && (
                 <p
                   className={cn(
@@ -45,8 +45,8 @@ export const StatsCard = ({ title, value, icon: Icon, trend, className }: StatsC
                 </p>
               )}
             </div>
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Icon className="size-6" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Icon className="size-4" />
             </div>
           </div>
         </CardContent>

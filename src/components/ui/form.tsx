@@ -1,3 +1,9 @@
+/**
+ * @file form.tsx
+ * @module components/ui/form
+ * Form components with react-hook-form integration and required field indicator.
+ */
+
 "use client"
 
 import * as React from "react"
@@ -34,7 +40,7 @@ const FormField = <
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
-}: ControllerProps<TFieldValues, TName>) => {
+}: ControllerProps<TFieldValues, TName>): React.ReactNode => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
       <Controller {...props} />
@@ -73,7 +79,7 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue
 )
 
-function FormItem({ className, ...props }: React.ComponentProps<"div">) {
+function FormItem({ className, ...props }: React.ComponentProps<"div">): React.ReactNode {
   const id = React.useId()
 
   return (
@@ -89,8 +95,10 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 
 function FormLabel({
   className,
+  children,
+  required,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentProps<typeof LabelPrimitive.Root> & { required?: boolean }): React.ReactNode {
   const { error, formItemId } = useFormField()
 
   return (
@@ -100,11 +108,14 @@ function FormLabel({
       className={cn("data-[error=true]:text-destructive", className)}
       htmlFor={formItemId}
       {...props}
-    />
+    >
+      {children}
+      {required && <span className="text-primary">*</span>}
+    </Label>
   )
 }
 
-function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>) {
+function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>): React.ReactNode {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
 
   return (
@@ -122,7 +133,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>) {
   )
 }
 
-function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
+function FormDescription({ className, ...props }: React.ComponentProps<"p">): React.ReactNode {
   const { formDescriptionId } = useFormField()
 
   return (
@@ -135,7 +146,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
+function FormMessage({ className, ...props }: React.ComponentProps<"p">): React.ReactNode {
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message ?? "") : props.children
 

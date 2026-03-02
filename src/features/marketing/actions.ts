@@ -63,14 +63,18 @@ export const submitContactForm = async (
   }
 
   try {
-    const { Resend } = await import('resend')
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const { sendEmail } = await import('@/features/email/send')
+    const { ContactForm } = await import('../../../emails/contact-form')
 
-    await resend.emails.send({
-      from: process.env.EMAIL_FROM ?? 'noreply@example.com',
+    await sendEmail({
       to: process.env.EMAIL_FROM ?? 'admin@example.com',
       subject: `Contact form: ${parsed.data.name}`,
-      text: `Name: ${parsed.data.name}\nEmail: ${parsed.data.email}\n\nMessage:\n${parsed.data.message}`,
+      template: ContactForm({
+        senderName: parsed.data.name,
+        senderEmail: parsed.data.email,
+        message: parsed.data.message,
+      }),
+      replyTo: parsed.data.email,
     })
 
     return { success: true }

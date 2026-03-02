@@ -11,7 +11,12 @@ import { customSession } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
 import { stripe } from '@better-auth/stripe'
 import Stripe from 'stripe'
+import { format } from 'date-fns'
+
 import { prisma } from '@/lib/prisma'
+import { APP_NAME, APP_URL, PLANS } from '@/lib/config'
+import type { PlanKey } from '@/lib/config'
+import { sendEmail } from '@/features/email/send'
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -24,6 +29,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) => {
+      const { PasswordReset } = await import('../../emails/password-reset')
+      await sendEmail({
+        to: user.email,
+        subject: `Reset your ${APP_NAME} password`,
+        template: PasswordReset({ name: user.name, resetUrl: url }),
+      })
+    },
   },
 
   socialProviders: {
@@ -45,8 +58,21 @@ export const auth = betterAuth({
   },
 
   emailVerification: {
-    sendVerificationEmail: async ({ user: _user, url: _url }) => {
-      // Wired to Resend in Module 06
+    sendVerificationEmail: async ({ user, url }) => {
+      const { VerifyEmail } = await import('../../emails/verify-email')
+      await sendEmail({
+        to: user.email,
+        subject: `Verify your email for ${APP_NAME}`,
+        template: VerifyEmail({ name: user.name, verifyUrl: url }),
+      })
+    },
+    afterEmailVerification: async (user) => {
+      const { Welcome } = await import('../../emails/welcome')
+      await sendEmail({
+        to: user.email,
+        subject: `Welcome to ${APP_NAME}!`,
+        template: Welcome({ name: user.name, dashboardUrl: `${APP_URL}/dashboard` }),
+      })
     },
   },
 
@@ -64,8 +90,13 @@ export const auth = betterAuth({
     nextCookies(),
     twoFactor({ issuer: process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation' }),
     magicLink({
-      sendMagicLink: async ({ email: _email, url: _url }) => {
-        // Wired to Resend in Module 06
+      sendMagicLink: async ({ email, url }) => {
+        const { MagicLink } = await import('../../emails/magic-link')
+        await sendEmail({
+          to: email,
+          subject: `Sign in to ${APP_NAME}`,
+          template: MagicLink({ loginUrl: url }),
+        })
       },
     }),
     stripe({
@@ -93,11 +124,47 @@ export const auth = betterAuth({
             limits: { projects: 100, storage: 50 },
           },
         ],
-        onSubscriptionComplete: async () => {
-          // TODO: Send payment confirmation email in Module 06
+        onSubscriptionComplete: async ({ subscription, plan }) => {
+          const user = await prisma.user.findUnique({
+            where: { id: subscription.referenceId },
+          })
+          if (!user) return
+          const { PaymentConfirmation } = await import('../../emails/payment-confirmation')
+          const planConfig = PLANS[plan.name as PlanKey]
+          const price = planConfig?.monthlyPrice ?? 0
+          const amount = `$${price.toFixed(2)}`
+          const nextBillingDate = subscription.periodEnd
+            ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
+            : 'N/A'
+          await sendEmail({
+            to: user.email,
+            subject: `Payment confirmed — ${APP_NAME}`,
+            template: PaymentConfirmation({
+              name: user.name,
+              planName: planConfig?.name ?? plan.name,
+              amount,
+              nextBillingDate,
+            }),
+          })
         },
-        onSubscriptionCancel: async () => {
-          // TODO: Send cancellation email in Module 06
+        onSubscriptionCancel: async ({ subscription }) => {
+          const user = await prisma.user.findUnique({
+            where: { id: subscription.referenceId },
+          })
+          if (!user) return
+          const { SubscriptionCanceled } = await import('../../emails/subscription-canceled')
+          const accessUntil = subscription.periodEnd
+            ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
+            : 'end of current period'
+          await sendEmail({
+            to: user.email,
+            subject: `Subscription canceled — ${APP_NAME}`,
+            template: SubscriptionCanceled({
+              name: user.name,
+              accessUntil,
+              resubscribeUrl: `${APP_URL}/dashboard/billing`,
+            }),
+          })
         },
       },
     }),

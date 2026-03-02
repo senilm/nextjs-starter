@@ -14,6 +14,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { invalidateUserSessions } from '@/lib/rbac'
+import { APP_URL } from '@/lib/config'
+import { sendEmail } from '@/features/email/send'
 import { inviteUserSchema, updatePlanSchema, systemSettingsSchema } from '@/features/admin/validations'
 import type {
   AdminStats,
@@ -328,14 +330,29 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
   const { nanoid } = await import('nanoid')
   const INVITATION_EXPIRY_DAYS = 7
 
+  const session = (await auth.api.getSession({ headers: await headers() }))!
+  const token = nanoid()
+
   await prisma.userInvitation.create({
     data: {
       email: parsed.data.email,
       roleId: parsed.data.roleId,
-      invitedBy: (await auth.api.getSession({ headers: await headers() }))!.user.id,
-      token: nanoid(),
+      invitedBy: session.user.id,
+      token,
       expiresAt: new Date(Date.now() + INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000),
     },
+  })
+
+  const role = await prisma.role.findFirst({ where: { id: parsed.data.roleId, deletedAt: null } })
+  const { UserInvitation } = await import('../../../emails/user-invitation')
+  await sendEmail({
+    to: parsed.data.email,
+    subject: `You've been invited to join ${process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation'}`,
+    template: UserInvitation({
+      inviterName: session.user.name,
+      roleName: role?.name ?? 'Member',
+      signUpUrl: `${APP_URL}/sign-up?token=${token}`,
+    }),
   })
 
   revalidatePath('/admin/users')

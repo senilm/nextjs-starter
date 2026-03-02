@@ -39,9 +39,11 @@ const envSchema = z.object({
   STRIPE_BUSINESS_MONTHLY_PRICE_ID: z.string().optional(),
   STRIPE_BUSINESS_YEARLY_PRICE_ID: z.string().optional(),
 
-  /* UploadThing — optional */
-  UPLOADTHING_SECRET: z.string().optional(),
-  UPLOADTHING_APP_ID: z.string().optional(),
+  /* AWS S3 — optional (required for file uploads) */
+  AWS_S3_BUCKET: z.string().optional(),
+  AWS_S3_REGION: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

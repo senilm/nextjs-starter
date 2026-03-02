@@ -16,9 +16,9 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset>
+      <SidebarInset className="h-svh overflow-hidden">
         <DashboardTopbar />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

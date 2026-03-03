@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const AUTH_PAGES = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email']
 
-export function middleware(request: NextRequest): NextResponse {
+export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl
   const sessionCookie = getSessionCookie(request)
 
@@ -27,5 +27,13 @@ export function middleware(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/sign-in', '/sign-up', '/forgot-password', '/reset-password', '/verify-email'],
+  matcher: [
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/sign-in',
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+  ],
 }

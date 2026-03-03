@@ -168,8 +168,8 @@ export const SystemSettingsForm = (): React.ReactNode => {
 
           {canEdit && (
             <div className="flex justify-end">
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? 'Saving...' : 'Save Settings'}
+              <Button type="submit" loading={updateMutation.isPending}>
+                Save Settings
               </Button>
             </div>
           )}

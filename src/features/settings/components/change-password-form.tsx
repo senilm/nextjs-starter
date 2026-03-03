@@ -93,8 +93,8 @@ export const ChangePasswordForm = (): React.ReactNode => {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Changing...' : 'Change password'}
+            <Button type="submit" loading={form.formState.isSubmitting}>
+              Change password
             </Button>
           </form>
         </Form>

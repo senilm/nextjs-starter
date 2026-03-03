@@ -108,14 +108,14 @@ export const TwoFactorSetup = (): React.ReactNode => {
       </CardHeader>
       <CardContent>
         {step === 'idle' && !isEnabled && (
-          <Button onClick={handleEnable} disabled={isPending}>
-            {isPending ? 'Setting up...' : 'Enable 2FA'}
+          <Button onClick={handleEnable} loading={isPending}>
+            Enable 2FA
           </Button>
         )}
 
         {step === 'idle' && isEnabled && (
-          <Button variant="destructive" onClick={handleDisable} disabled={isPending}>
-            {isPending ? 'Disabling...' : 'Disable 2FA'}
+          <Button variant="destructive" onClick={handleDisable} loading={isPending}>
+            Disable 2FA
           </Button>
         )}
 
@@ -148,8 +148,8 @@ export const TwoFactorSetup = (): React.ReactNode => {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Verifying...' : 'Verify & Enable'}
+                <Button type="submit" loading={form.formState.isSubmitting}>
+                  Verify & Enable
                 </Button>
               </form>
             </Form>

@@ -170,8 +170,8 @@ const RoleFormContent = ({ role, permissionGroups, onClose }: RoleFormContentPro
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'Saving...' : isEditing ? 'Update Role' : 'Create Role'}
+          <Button type="submit" loading={isPending}>
+            {isEditing ? 'Update Role' : 'Create Role'}
           </Button>
         </DialogFooter>
       </form>

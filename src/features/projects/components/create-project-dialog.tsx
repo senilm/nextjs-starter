@@ -101,12 +101,8 @@ export const CreateProjectDialog = (): React.ReactNode => {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createProject.isPending}>
-                {createProject.isPending ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  'Create'
-                )}
+              <Button type="submit" loading={createProject.isPending}>
+                Create
               </Button>
             </DialogFooter>
           </form>

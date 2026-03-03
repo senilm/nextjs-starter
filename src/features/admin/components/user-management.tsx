@@ -314,7 +314,8 @@ export const UserManagement = (): React.ReactNode => {
               Cancel
             </Button>
             <Button
-              disabled={!selectedRoleId || changeRoleMutation.isPending}
+              disabled={!selectedRoleId}
+              loading={changeRoleMutation.isPending}
               onClick={() => {
                 if (changeRoleUserId && selectedRoleId) {
                   changeRoleMutation.mutate({ userId: changeRoleUserId, roleId: selectedRoleId })
@@ -323,7 +324,7 @@ export const UserManagement = (): React.ReactNode => {
                 }
               }}
             >
-              {changeRoleMutation.isPending ? 'Saving...' : 'Save'}
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>

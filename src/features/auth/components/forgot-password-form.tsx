@@ -91,12 +91,8 @@ export const ForgotPasswordForm = () => {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              'Send reset link'
-            )}
+          <Button type="submit" className="w-full" loading={isPending}>
+            Send reset link
           </Button>
         </form>
       </Form>

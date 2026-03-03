@@ -155,12 +155,8 @@ export const SignInForm = () => {
                 </motion.p>
               )}
 
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  'Sign in'
-                )}
+              <Button type="submit" className="w-full" loading={isPending}>
+                Sign in
               </Button>
             </form>
           </Form>
@@ -208,12 +204,8 @@ export const SignInForm = () => {
                   </motion.p>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isPending}>
-                  {isPending ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    'Send magic link'
-                  )}
+                <Button type="submit" className="w-full" loading={isPending}>
+                  Send magic link
                 </Button>
               </form>
             </Form>

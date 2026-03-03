@@ -80,9 +80,9 @@ export const ActiveSessions = (): React.ReactNode => {
             variant="outline"
             size="sm"
             onClick={() => revokeAllMutation.mutate()}
-            disabled={revokeAllMutation.isPending}
+            loading={revokeAllMutation.isPending}
           >
-            {revokeAllMutation.isPending ? 'Revoking...' : 'Revoke all others'}
+            Revoke all others
           </Button>
         )}
       </CardHeader>
@@ -119,7 +119,7 @@ export const ActiveSessions = (): React.ReactNode => {
                     variant="ghost"
                     size="sm"
                     onClick={() => revokeMutation.mutate(s.id)}
-                    disabled={revokeMutation.isPending}
+                    loading={revokeMutation.isPending}
                   >
                     Revoke
                   </Button>

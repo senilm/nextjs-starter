@@ -140,12 +140,8 @@ export const EditProjectDialog = ({ project, open, onOpenChange }: EditProjectDi
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateProjectMutation.isPending}>
-                {updateProjectMutation.isPending ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  'Save changes'
-                )}
+              <Button type="submit" loading={updateProjectMutation.isPending}>
+                Save changes
               </Button>
             </DialogFooter>
           </form>

@@ -166,8 +166,8 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              <Button type="submit" loading={updateMutation.isPending}>
+                Save Changes
               </Button>
             </DialogFooter>
           </form>

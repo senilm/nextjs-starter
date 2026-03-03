@@ -70,8 +70,8 @@ export const ProfileForm = (): React.ReactNode => {
               <Input value={session?.user?.email ?? ''} disabled className="mt-1.5" />
               <p className="mt-1 text-xs text-muted-foreground">Contact support to change your email.</p>
             </div>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving...' : 'Save changes'}
+            <Button type="submit" loading={form.formState.isSubmitting}>
+              Save changes
             </Button>
           </form>
         </Form>

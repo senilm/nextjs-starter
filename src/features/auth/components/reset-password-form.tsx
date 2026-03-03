@@ -121,12 +121,8 @@ export const ResetPasswordForm = () => {
             </motion.p>
           )}
 
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              'Reset password'
-            )}
+          <Button type="submit" className="w-full" loading={isPending}>
+            Reset password
           </Button>
         </form>
       </Form>

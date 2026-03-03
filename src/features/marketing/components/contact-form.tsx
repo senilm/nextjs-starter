@@ -9,7 +9,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Loader2, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -112,12 +112,8 @@ export const ContactForm = (): React.ReactNode => {
           />
         </div>
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          ) : (
-            <Send className="mr-2 size-4" />
-          )}
+        <Button type="submit" loading={form.formState.isSubmitting}>
+          {!form.formState.isSubmitting && <Send className="size-4" />}
           Send Message
         </Button>
       </form>

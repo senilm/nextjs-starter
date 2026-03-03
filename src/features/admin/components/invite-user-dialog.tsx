@@ -101,8 +101,8 @@ export const InviteUserDialog = ({ open, onOpenChange }: InviteUserDialogProps):
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={inviteMutation.isPending}>
-                {inviteMutation.isPending ? 'Sending...' : 'Send Invitation'}
+              <Button type="submit" loading={inviteMutation.isPending}>
+                Send Invitation
               </Button>
             </DialogFooter>
           </form>

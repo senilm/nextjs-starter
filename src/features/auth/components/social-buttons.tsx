@@ -122,16 +122,13 @@ export const SocialButtons = () => {
             variant="outline"
             className="w-full"
             onClick={() => handleSocialLogin(provider.id)}
-            disabled={loadingProvider !== null}
+            loading={loadingProvider === provider.id}
+            disabled={loadingProvider !== null && loadingProvider !== provider.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.2 }}
           >
-            {loadingProvider === provider.id ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              provider.icon
-            )}
+            {provider.icon}
             <span className="ml-2">{provider.name}</span>
           </MotionButton>
         )

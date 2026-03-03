@@ -6,18 +6,17 @@
 
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+
 import { auth } from '@/lib/auth'
 import { paths } from '@/lib/paths'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { APP_NAME } from '@/lib/config'
+import { Navbar } from '@/features/marketing/components/navbar'
 
 export default async function AuthLayout({
   children,
-  title,
 }: {
   children: React.ReactNode
-  title?: string
 }): Promise<React.ReactElement> {
   const session = await auth.api.getSession({ headers: await headers() })
 
@@ -27,17 +26,14 @@ export default async function AuthLayout({
 
   return (
     <TooltipProvider>
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-primary">{APP_NAME}</h1>
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1 items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardContent className="pt-6">{children}</CardContent>
+            </Card>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-center">{title}</CardTitle>
-            </CardHeader>
-            <CardContent>{children}</CardContent>
-          </Card>
         </div>
       </div>
     </TooltipProvider>

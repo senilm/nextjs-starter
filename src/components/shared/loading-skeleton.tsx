@@ -32,13 +32,14 @@ export const TableSkeleton = ({ rows = 5, columns = 4 }: TableSkeletonProps): Re
 
 export const CardSkeleton = (): React.ReactNode => {
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-4">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-7 w-12" />
+          <Skeleton className="h-4 w-20" />
         </div>
-        <Skeleton className="size-12 rounded-lg" />
+        <Skeleton className="bg-primary/10 size-9 rounded-lg" />
       </div>
     </div>
   )

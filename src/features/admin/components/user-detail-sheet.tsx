@@ -6,13 +6,12 @@
 
 'use client'
 
-import { format } from 'date-fns'
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatDate, formatDateTime } from '@/lib/format'
 import { useUserDetail } from '@/features/admin/hooks'
 
 interface UserDetailSheetProps {
@@ -119,7 +118,7 @@ export const UserDetailSheet = ({ userId, open, onOpenChange }: UserDetailSheetP
                         {session.userAgent ?? 'Unknown device'}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {format(new Date(session.createdAt), 'MMM d, yyyy h:mm a')}
+                        {formatDateTime(session.createdAt)}
                       </p>
                     </div>
                   ))}
@@ -132,8 +131,8 @@ export const UserDetailSheet = ({ userId, open, onOpenChange }: UserDetailSheetP
             <Separator />
 
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>Joined: {format(new Date(user.createdAt), 'MMM d, yyyy')}</p>
-              <p>Last updated: {format(new Date(user.updatedAt), 'MMM d, yyyy')}</p>
+              <p>Joined: {formatDate(user.createdAt)}</p>
+              <p>Last updated: {formatDate(user.updatedAt)}</p>
             </div>
           </div>
         )}

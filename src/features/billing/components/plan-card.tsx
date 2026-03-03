@@ -7,7 +7,6 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { format } from 'date-fns'
 import { CreditCard, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -15,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatDate } from '@/lib/format'
 import { authClient } from '@/lib/auth-client'
 import { useSubscription } from '@/features/billing/hooks'
 
@@ -66,9 +66,9 @@ export const PlanCard = (): React.ReactNode => {
               </CardTitle>
               <CardDescription>
                 {subscription?.cancelAtPeriodEnd && subscription?.periodEnd
-                  ? `Cancels on ${format(subscription.periodEnd, 'MMM d, yyyy')}`
+                  ? `Cancels on ${formatDate(subscription.periodEnd)}`
                   : subscription?.periodEnd
-                    ? `Renews on ${format(subscription.periodEnd, 'MMM d, yyyy')}`
+                    ? `Renews on ${formatDate(subscription.periodEnd)}`
                     : 'No active subscription'}
               </CardDescription>
             </div>

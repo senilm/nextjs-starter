@@ -9,12 +9,11 @@
 import Link from 'next/link'
 import { motion } from 'motion/react'
 import { FolderKanban, ArrowRight } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { formatRelativeTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { paths } from '@/lib/paths'
 import { useRecentProjects } from '@/features/dashboard/hooks'
@@ -86,7 +85,7 @@ export const RecentProjects = (): React.ReactNode => {
                     <div>
                       <p className="text-sm font-medium">{project.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Updated {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true })}
+                        Updated {formatRelativeTime(project.updatedAt)}
                       </p>
                     </div>
                   </div>

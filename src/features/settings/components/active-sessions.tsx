@@ -8,13 +8,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
 import { Monitor, Smartphone, Globe } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatRelativeTime } from '@/lib/format'
 import { getActiveSessions, revokeSession, revokeAllOtherSessions } from '@/features/settings/actions'
 
 const SESSIONS_KEY = ['settings', 'sessions']
@@ -110,7 +110,7 @@ export const ActiveSessions = (): React.ReactNode => {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {s.ipAddress ?? 'Unknown IP'} &middot;{' '}
-                      {formatDistanceToNow(new Date(s.createdAt), { addSuffix: true })}
+                      {formatRelativeTime(s.createdAt)}
                     </p>
                   </div>
                 </div>

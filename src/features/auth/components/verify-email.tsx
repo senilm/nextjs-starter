@@ -8,7 +8,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'motion/react'
 import { Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -51,20 +50,10 @@ export const VerifyEmail = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="space-y-6 text-center"
-    >
-      <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
-        className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10"
-      >
+    <div className="space-y-6 text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
         <Mail className="h-8 w-8 text-primary" />
-      </motion.div>
+      </div>
 
       <div className="space-y-2">
         <p className="text-lg font-semibold">Check your email</p>
@@ -90,6 +79,6 @@ export const VerifyEmail = () => {
       <p className="text-xs text-muted-foreground">
         This page will automatically redirect once verified.
       </p>
-    </motion.div>
+    </div>
   )
 }

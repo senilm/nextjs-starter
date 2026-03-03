@@ -9,7 +9,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'motion/react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -48,12 +47,7 @@ export const ForgotPasswordForm = () => {
 
   if (submitted) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25 }}
-        className="space-y-4 text-center"
-      >
+      <div className="space-y-4 text-center">
         <p className="text-sm font-medium">Check your email</p>
         <p className="text-sm text-muted-foreground">
           If an account with that email exists, we sent a password reset link.
@@ -61,17 +55,12 @@ export const ForgotPasswordForm = () => {
         <Link href={paths.auth.signIn()} className="text-sm text-primary hover:underline">
           Back to sign in
         </Link>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <p className="text-center text-sm text-muted-foreground">
         Enter your email and we&apos;ll send you a reset link.
       </p>
@@ -103,6 +92,6 @@ export const ForgotPasswordForm = () => {
           Back to sign in
         </Link>
       </p>
-    </motion.div>
+    </div>
   )
 }

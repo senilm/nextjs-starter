@@ -7,7 +7,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient } from '@/lib/auth-client'
@@ -78,8 +77,6 @@ const PROVIDERS: SocialProvider[] = [
   },
 ]
 
-const MotionButton = motion.create(Button)
-
 export const SocialButtons = () => {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
 
@@ -93,22 +90,19 @@ export const SocialButtons = () => {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {PROVIDERS.map((provider, index) => {
+      {PROVIDERS.map((provider) => {
         if (!provider.enabled) {
           return (
             <Tooltip key={provider.id}>
               <TooltipTrigger asChild>
-                <MotionButton
+                <Button
                   variant="outline"
                   className="w-full opacity-50"
                   disabled
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 0.5, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.2 }}
                 >
                   {provider.icon}
                   <span className="ml-2">{provider.name}</span>
-                </MotionButton>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Enable in .env — see docs</p>
@@ -118,20 +112,17 @@ export const SocialButtons = () => {
         }
 
         return (
-          <MotionButton
+          <Button
             key={provider.id}
             variant="outline"
             className="w-full"
             onClick={() => handleSocialLogin(provider.id)}
             loading={loadingProvider === provider.id}
             disabled={loadingProvider !== null && loadingProvider !== provider.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.2 }}
           >
             {provider.icon}
             <span className="ml-2">{provider.name}</span>
-          </MotionButton>
+          </Button>
         )
       })}
     </div>

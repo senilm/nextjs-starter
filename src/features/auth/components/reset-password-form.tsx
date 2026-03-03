@@ -60,25 +60,15 @@ export const ResetPasswordForm = () => {
 
   if (success) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25 }}
-        className="space-y-4 text-center"
-      >
+      <div className="space-y-4 text-center">
         <p className="text-sm font-medium">Password reset successful</p>
         <p className="text-sm text-muted-foreground">Redirecting to sign in...</p>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       <p className="text-center text-sm text-muted-foreground">
         Enter your new password below.
       </p>
@@ -133,6 +123,6 @@ export const ResetPasswordForm = () => {
           Back to sign in
         </Link>
       </p>
-    </motion.div>
+    </div>
   )
 }

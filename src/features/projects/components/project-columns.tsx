@@ -7,18 +7,11 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { format } from 'date-fns'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DataTableHeader } from '@/components/data-table/data-table-header'
+import { DataTableRowActions } from '@/components/data-table/data-table-row-actions'
 import { ProjectStatusBadge } from '@/features/projects/components/project-status-badge'
+import { formatDate } from '@/lib/format'
 import type { Project, ProjectStatus } from '@/features/projects/types'
 
 interface ColumnActions {
@@ -26,11 +19,12 @@ interface ColumnActions {
   onDelete: (project: Project) => void
 }
 
-export function getProjectColumns({ onEdit, onDelete }: ColumnActions): ColumnDef<Project>[] {
+export const getProjectColumns = ({ onEdit, onDelete }: ColumnActions): ColumnDef<Project>[] => {
   return [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: ({ column }) => <DataTableHeader column={column} title="Name" />,
+      meta: { label: 'Name' },
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
@@ -42,50 +36,39 @@ export function getProjectColumns({ onEdit, onDelete }: ColumnActions): ColumnDe
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: ({ column }) => <DataTableHeader column={column} title="Status" />,
+      meta: { label: 'Status' },
       cell: ({ row }) => <ProjectStatusBadge status={row.original.status as ProjectStatus} />,
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created',
+      header: ({ column }) => <DataTableHeader column={column} title="Created" />,
+      meta: { label: 'Created' },
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {format(new Date(row.original.createdAt), 'MMM d, yyyy')}
+          {formatDate(row.original.createdAt, 'MMM d, yyyy')}
         </span>
       ),
     },
     {
       accessorKey: 'updatedAt',
-      header: 'Updated',
+      header: ({ column }) => <DataTableHeader column={column} title="Updated" />,
+      meta: { label: 'Updated' },
       cell: ({ row }) => (
         <span className="text-sm text-muted-foreground">
-          {format(new Date(row.original.updatedAt), 'MMM d, yyyy')}
+          {formatDate(row.original.updatedAt, 'MMM d, yyyy')}
         </span>
       ),
     },
     {
       id: 'actions',
       header: '',
+      enableHiding: false,
       cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-xs">
-              <MoreHorizontal className="size-4" />
-              <span className="sr-only">Actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-              <Pencil className="mr-2 size-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onDelete(row.original)} className="text-destructive">
-              <Trash2 className="mr-2 size-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <DataTableRowActions
+          onEdit={() => onEdit(row.original)}
+          onDelete={() => onDelete(row.original)}
+        />
       ),
     },
   ]

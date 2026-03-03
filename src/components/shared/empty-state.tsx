@@ -7,16 +7,16 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type LucideIcon } from 'lucide-react'
+import { Inbox, type LucideIcon } from 'lucide-react'
 
 interface EmptyStateProps {
-  icon: LucideIcon
+  icon?: LucideIcon
   title: string
   description: string
   action?: React.ReactNode
 }
 
-export const EmptyState = ({ icon: Icon, title, description, action }: EmptyStateProps): React.ReactNode => {
+export const EmptyState = ({ icon: Icon = Inbox, title, description, action }: EmptyStateProps): React.ReactNode => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}

@@ -6,15 +6,12 @@
 
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
-import { UserPlus, Search } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { UserPlus, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +30,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { DataTable } from '@/components/data-table/data-table'
+import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
+import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
 import { PageHeader } from '@/components/shared/page-header'
-import { TableSkeleton } from '@/components/shared/loading-skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
 import { usePermission } from '@/hooks/use-permission'
+import { useDebounce } from '@/hooks/use-debounce'
+import { usePagination } from '@/hooks/use-pagination'
 import {
   useUsers,
   useChangeUserRole,
@@ -49,15 +50,20 @@ import { UserDetailSheet } from '@/features/admin/components/user-detail-sheet'
 import { InviteUserDialog } from '@/features/admin/components/invite-user-dialog'
 import { getRoles } from '@/features/roles/actions'
 import type { UserFilters } from '@/features/admin/types'
-import { Users } from 'lucide-react'
+
+const STATUS_FILTER_OPTIONS = [
+  { label: 'Active', value: 'active' },
+  { label: 'Suspended', value: 'suspended' },
+]
 
 export const UserManagement = (): React.ReactNode => {
   const canEdit = usePermission('users.edit')
   const canCreate = usePermission('users.create')
   const canDelete = usePermission('users.delete')
 
-  const [filters, setFilters] = useState<UserFilters>({ page: 1, limit: 10 })
+  const { page, limit, setPage, setLimit, resetPage } = usePagination()
   const [search, setSearch] = useState('')
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [detailUserId, setDetailUserId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -67,16 +73,45 @@ export const UserManagement = (): React.ReactNode => {
   const [changeRoleUserId, setChangeRoleUserId] = useState<string | null>(null)
   const [selectedRoleId, setSelectedRoleId] = useState('')
 
-  const { data, isLoading } = useUsers(filters)
+  const debouncedSearch = useDebounce(search)
   const { data: roles } = useQuery({ queryKey: ['roles'], queryFn: () => getRoles() })
+
+  const filterFields: FilterField[] = useMemo(
+    () => [
+      {
+        key: 'roleId',
+        label: 'Role',
+        type: 'select' as const,
+        placeholder: 'All roles',
+        options: roles?.map((role) => ({ label: role.name, value: role.id })) ?? [],
+      },
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select' as const,
+        placeholder: 'All statuses',
+        options: STATUS_FILTER_OPTIONS,
+      },
+    ],
+    [roles],
+  )
+
+  const activeFilterCount = Object.values(filterValues).filter(Boolean).length
+  const hasActiveFilters = !!debouncedSearch || activeFilterCount > 0
+
+  const filters: UserFilters = {
+    search: debouncedSearch || undefined,
+    roleId: filterValues.roleId || undefined,
+    status: (filterValues.status as UserFilters['status']) || undefined,
+    page,
+    limit,
+  }
+
+  const { data, isLoading, refetch, isRefetching } = useUsers(filters)
   const deleteMutation = useDeleteUser()
   const suspendMutation = useSuspendUser()
   const unsuspendMutation = useUnsuspendUser()
   const changeRoleMutation = useChangeUserRole()
-
-  const handleSearch = useCallback((): void => {
-    setFilters((prev) => ({ ...prev, search, page: 1 }))
-  }, [search])
 
   const columns = useMemo(
     () =>
@@ -95,11 +130,41 @@ export const UserManagement = (): React.ReactNode => {
     [canEdit, canDelete],
   )
 
-  const table = useReactTable({
-    data: data?.users ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
+  const handleSearchChange = (value: string): void => {
+    setSearch(value)
+    resetPage()
+  }
+
+  const handleFilterChange = (key: string, value: string): void => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }))
+    resetPage()
+  }
+
+  const handleFilterClear = (): void => {
+    setFilterValues({})
+    resetPage()
+  }
+
+  if (!isLoading && !data?.users.length && !hasActiveFilters) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Users"
+          description="Manage user accounts, roles, and access."
+          actions={
+            canCreate ? (
+              <Button onClick={() => setInviteOpen(true)}>
+                <UserPlus className="mr-2 size-4" />
+                Invite User
+              </Button>
+            ) : undefined
+          }
+        />
+        <EmptyState icon={Users} title="No users found" description="No user accounts exist yet." />
+        <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -116,106 +181,35 @@ export const UserManagement = (): React.ReactNode => {
         }
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={filters.roleId ?? 'all'}
-          onValueChange={(v) => setFilters((prev) => ({ ...prev, roleId: v, page: 1 }))}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All roles" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            {roles?.map((role) => (
-              <SelectItem key={role.id} value={role.id}>
-                {role.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.status ?? 'all'}
-          onValueChange={(v) =>
-            setFilters((prev) => ({ ...prev, status: v as UserFilters['status'], page: 1 }))
-          }
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {isLoading ? (
-        <TableSkeleton rows={5} columns={6} />
-      ) : !data?.users.length ? (
-        <EmptyState icon={Users} title="No users found" description="Try adjusting your search or filters." />
-      ) : (
-        <>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Page {data.page} of {data.totalPages} ({data.total} total)
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page <= 1}
-                onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page ?? 1) - 1 }))}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page >= data.totalPages}
-                onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page ?? 1) + 1 }))}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+      <DataTable
+        columns={columns}
+        data={data?.users ?? []}
+        isLoading={isLoading}
+        hasActiveFilters={hasActiveFilters}
+        emptyTitle="No users found"
+        emptyDescription="Try adjusting your search or filters."
+        pagination={data ? { page: data.page, limit, total: data.total, totalPages: data.totalPages } : undefined}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+        toolbar={(columnCustomizer) => (
+          <DataTableToolbar
+            searchValue={search}
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Search users..."
+            onRefresh={() => void refetch()}
+            isRefreshing={isRefetching}
+            columnCustomizer={columnCustomizer}
+          >
+            <DataTableFilter
+              fields={filterFields}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onClear={handleFilterClear}
+              activeCount={activeFilterCount}
+            />
+          </DataTableToolbar>
+        )}
+      />
 
       <UserDetailSheet userId={detailUserId} open={detailOpen} onOpenChange={setDetailOpen} />
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />

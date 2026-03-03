@@ -7,7 +7,6 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { format } from 'date-fns'
 import { MoreHorizontal, Eye, ShieldCheck, Ban, Unlock, Trash2 } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -20,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DataTableHeader } from '@/components/data-table/data-table-header'
+import { formatDate } from '@/lib/format'
 import type { UserWithRole } from '@/features/admin/types'
 
 interface UserColumnsOptions {
@@ -32,11 +33,12 @@ interface UserColumnsOptions {
   canDelete: boolean
 }
 
-export function getUserColumns(options: UserColumnsOptions): ColumnDef<UserWithRole>[] {
+export const getUserColumns = (options: UserColumnsOptions): ColumnDef<UserWithRole>[] => {
   return [
     {
       accessorKey: 'name',
-      header: 'User',
+      header: ({ column }) => <DataTableHeader column={column} title="User" />,
+      meta: { label: 'User' },
       cell: ({ row }) => {
         const user = row.original
         const initials =
@@ -59,11 +61,14 @@ export function getUserColumns(options: UserColumnsOptions): ColumnDef<UserWithR
     },
     {
       accessorKey: 'email',
-      header: 'Email',
+      header: ({ column }) => <DataTableHeader column={column} title="Email" />,
+      meta: { label: 'Email' },
     },
     {
       accessorKey: 'role',
       header: 'Role',
+      meta: { label: 'Role' },
+      enableSorting: false,
       cell: ({ row }) => {
         const role = row.original.role
         return role ? <Badge variant="secondary">{role.name}</Badge> : <Badge variant="outline">No role</Badge>
@@ -72,6 +77,8 @@ export function getUserColumns(options: UserColumnsOptions): ColumnDef<UserWithR
     {
       accessorKey: 'isActive',
       header: 'Status',
+      meta: { label: 'Status' },
+      enableSorting: false,
       cell: ({ row }) => {
         const active = row.original.isActive
         return active ? (
@@ -85,11 +92,13 @@ export function getUserColumns(options: UserColumnsOptions): ColumnDef<UserWithR
     },
     {
       accessorKey: 'createdAt',
-      header: 'Joined',
-      cell: ({ row }) => format(new Date(row.original.createdAt), 'MMM d, yyyy'),
+      header: ({ column }) => <DataTableHeader column={column} title="Joined" />,
+      meta: { label: 'Joined' },
+      cell: ({ row }) => formatDate(row.original.createdAt, 'MMM d, yyyy'),
     },
     {
       id: 'actions',
+      enableHiding: false,
       cell: ({ row }) => {
         const user = row.original
         return (

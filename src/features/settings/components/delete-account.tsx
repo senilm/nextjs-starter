@@ -34,6 +34,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { paths } from '@/lib/paths'
 import { deleteAccount } from '@/features/settings/actions'
 import { deleteAccountSchema, type DeleteAccountInput } from '@/features/settings/validations'
 
@@ -50,7 +51,7 @@ export const DeleteAccount = (): React.ReactNode => {
     const result = await deleteAccount()
     if (result.success) {
       toast.success('Account deleted')
-      router.push('/sign-in')
+      router.push(paths.auth.signIn())
     } else {
       toast.error(result.error ?? 'Failed to delete account')
     }

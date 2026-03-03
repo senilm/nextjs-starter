@@ -88,6 +88,22 @@ export const auth = betterAuth({
     },
   },
 
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const defaultRole = await prisma.role.findFirst({ where: { isDefault: true } })
+          if (defaultRole) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { roleId: defaultRole.id },
+            })
+          }
+        },
+      },
+    },
+  },
+
   plugins: [
     nextCookies(),
     twoFactor({ issuer: process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation' }),

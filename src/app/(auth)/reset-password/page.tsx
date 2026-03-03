@@ -4,8 +4,8 @@
  * Reset password page — thin wrapper around ResetPasswordForm.
  */
 
-import { Suspense } from 'react'
 import { ResetPasswordForm } from '@/features/auth/components/reset-password-form'
+import { SuspenseFallback } from '@/components/shared/suspense-fallback'
 
 export const metadata = {
   title: 'Reset Password',
@@ -13,8 +13,8 @@ export const metadata = {
 
 export default function ResetPasswordPage(): React.ReactElement {
   return (
-    <Suspense>
+    <SuspenseFallback>
       <ResetPasswordForm />
-    </Suspense>
+    </SuspenseFallback>
   )
 }

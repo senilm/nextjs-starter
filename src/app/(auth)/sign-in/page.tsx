@@ -4,8 +4,8 @@
  * Sign-in page — thin wrapper around SignInForm feature component.
  */
 
-import { Suspense } from 'react'
 import { SignInForm } from '@/features/auth/components/sign-in-form'
+import { SuspenseFallback } from '@/components/shared/suspense-fallback'
 
 export const metadata = {
   title: 'Sign In',
@@ -13,8 +13,8 @@ export const metadata = {
 
 export default function SignInPage(): React.ReactElement {
   return (
-    <Suspense>
+    <SuspenseFallback>
       <SignInForm />
-    </Suspense>
+    </SuspenseFallback>
   )
 }

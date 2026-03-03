@@ -4,8 +4,8 @@
  * Sign-up page — thin wrapper around SignUpForm feature component.
  */
 
-import { Suspense } from 'react'
 import { SignUpForm } from '@/features/auth/components/sign-up-form'
+import { SuspenseFallback } from '@/components/shared/suspense-fallback'
 
 export const metadata = {
   title: 'Sign Up',
@@ -13,8 +13,8 @@ export const metadata = {
 
 export default function SignUpPage(): React.ReactElement {
   return (
-    <Suspense>
+    <SuspenseFallback>
       <SignUpForm />
-    </Suspense>
+    </SuspenseFallback>
   )
 }

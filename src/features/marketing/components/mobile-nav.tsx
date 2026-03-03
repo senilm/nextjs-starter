@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { Menu } from 'lucide-react'
 
 import { APP_NAME } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -22,10 +23,10 @@ import {
 import { NavbarAuthButton } from '@/features/marketing/components/navbar-auth-button'
 
 const NAV_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: paths.home(), label: 'Home' },
+  { href: paths.pricing(), label: 'Pricing' },
+  { href: paths.blog.list(), label: 'Blog' },
+  { href: paths.contact(), label: 'Contact' },
 ] as const
 
 export const MobileNav = (): React.ReactNode => {

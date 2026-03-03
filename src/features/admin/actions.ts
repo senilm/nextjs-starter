@@ -15,6 +15,7 @@ import { prisma } from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { invalidateUserSessions } from '@/lib/rbac'
 import { APP_URL } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
 import { inviteUserSchema, updatePlanSchema, systemSettingsSchema } from '@/features/admin/validations'
 import type {
@@ -351,7 +352,7 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
     template: UserInvitation({
       inviterName: session.user.name,
       roleName: role?.name ?? 'Member',
-      signUpUrl: `${APP_URL}/sign-up?token=${token}`,
+      signUpUrl: `${APP_URL}${paths.auth.signUp(token)}`,
     }),
   })
 

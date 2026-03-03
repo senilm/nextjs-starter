@@ -10,6 +10,7 @@ import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
 import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
+import { paths } from '../src/lib/paths'
 
 interface PaymentConfirmationProps {
   name: string
@@ -35,7 +36,7 @@ export const PaymentConfirmation = ({
       Next billing date: <strong>{nextBillingDate}</strong>
     </Text>
     <Section className="my-6 text-center">
-      <EmailButton href={`${EMAIL_APP_URL}/dashboard/billing`}>Manage Billing</EmailButton>
+      <EmailButton href={`${EMAIL_APP_URL}${paths.dashboard.billing()}`}>Manage Billing</EmailButton>
     </Section>
   </EmailLayout>
 )

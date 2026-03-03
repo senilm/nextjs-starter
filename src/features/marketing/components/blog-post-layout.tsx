@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, Clock, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { paths } from '@/lib/paths'
 import type { BlogPost } from '@/features/marketing/types'
 
 interface BlogPostLayoutProps {
@@ -22,7 +23,7 @@ export const BlogPostLayout = ({ post }: BlogPostLayoutProps): React.ReactNode =
     <article className="py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <Button variant="ghost" size="sm" className="mb-8" asChild>
-          <Link href="/blog">
+          <Link href={paths.blog.list()}>
             <ArrowLeft className="mr-1 size-4" />
             Back to blog
           </Link>

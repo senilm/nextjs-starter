@@ -7,6 +7,7 @@
 import Link from 'next/link'
 
 import { APP_NAME } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedSection } from '@/features/marketing/components/animated-section'
@@ -29,10 +30,10 @@ export const Hero = (): React.ReactNode => {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button size="lg" asChild>
-              <Link href="/sign-up">Get Started Free</Link>
+              <Link href={paths.auth.signUp()}>Get Started Free</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/pricing">View Pricing</Link>
+              <Link href={paths.pricing()}>View Pricing</Link>
             </Button>
           </div>
         </AnimatedSection>

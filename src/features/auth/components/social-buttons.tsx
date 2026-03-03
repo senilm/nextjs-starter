@@ -11,6 +11,7 @@ import { motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 
 interface SocialProvider {
   id: string
@@ -86,7 +87,7 @@ export const SocialButtons = () => {
     setLoadingProvider(providerId)
     await authClient.signIn.social({
       provider: providerId as 'google' | 'github',
-      callbackURL: '/dashboard',
+      callbackURL: paths.dashboard.home(),
     })
   }
 

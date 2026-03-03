@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { APP_NAME, APP_URL } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { getBlogPosts, getBlogPost } from '@/lib/mdx'
 import { BlogPostLayout } from '@/features/marketing/components/blog-post-layout'
 
@@ -35,7 +36,7 @@ export const generateMetadata = async ({
       type: 'article',
       publishedTime: post.meta.date,
       authors: [post.meta.author],
-      url: `${APP_URL}/blog/${slug}`,
+      url: `${APP_URL}${paths.blog.post(slug)}`,
     },
     twitter: {
       card: 'summary_large_image',

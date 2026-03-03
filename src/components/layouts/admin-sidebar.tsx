@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/layouts/user-menu'
 import { usePermission } from '@/hooks/use-permission'
 import { ADMIN_NAV, type NavItem } from '@/lib/navigation'
+import { paths } from '@/lib/paths'
 import { APP_NAME } from '@/lib/config'
 
 export const AdminSidebar = (): React.ReactNode => {
@@ -35,7 +36,7 @@ export const AdminSidebar = (): React.ReactNode => {
   const { theme, setTheme } = useTheme()
 
   const isActive = (href: string): boolean => {
-    if (href === '/admin') return pathname === '/admin'
+    if (href === paths.admin.home()) return pathname === paths.admin.home()
     return pathname.startsWith(href)
   }
 
@@ -45,7 +46,7 @@ export const AdminSidebar = (): React.ReactNode => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin">
+              <Link href={paths.admin.home()}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Zap className="size-4" />
                 </div>
@@ -78,7 +79,7 @@ export const AdminSidebar = (): React.ReactNode => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Back to App">
-                  <Link href="/dashboard">
+                  <Link href={paths.dashboard.home()}>
                     <ArrowLeft />
                     <span>Back to App</span>
                   </Link>

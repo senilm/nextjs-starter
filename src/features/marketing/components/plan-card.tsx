@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { paths } from '@/lib/paths'
 
 interface PlanCardProps {
   name: string
@@ -73,7 +74,7 @@ export const PlanCard = ({
           variant={highlighted ? 'default' : 'outline'}
           asChild
         >
-          <Link href="/sign-up">
+          <Link href={paths.auth.signUp()}>
             {isFree ? 'Get Started Free' : 'Start Free Trial'}
           </Link>
         </Button>

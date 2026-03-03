@@ -13,6 +13,7 @@ import { Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 
 const RESEND_COOLDOWN_SECONDS = 60
 
@@ -24,7 +25,7 @@ export const VerifyEmail = () => {
   const checkVerification = useCallback(async () => {
     const { data } = await authClient.getSession()
     if (data?.user?.emailVerified) {
-      router.push('/dashboard')
+      router.push(paths.dashboard.home())
     }
   }, [router])
 
@@ -43,7 +44,7 @@ export const VerifyEmail = () => {
     setResending(true)
     await authClient.sendVerificationEmail({
       email: '',
-      callbackURL: '/dashboard',
+      callbackURL: paths.dashboard.home(),
     })
     setResending(false)
     setCooldown(RESEND_COOLDOWN_SECONDS)

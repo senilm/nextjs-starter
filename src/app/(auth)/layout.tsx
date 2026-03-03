@@ -7,6 +7,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { paths } from '@/lib/paths'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { APP_NAME } from '@/lib/config'
@@ -21,7 +22,7 @@ export default async function AuthLayout({
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (session) {
-    redirect('/dashboard')
+    redirect(paths.dashboard.home())
   }
 
   return (

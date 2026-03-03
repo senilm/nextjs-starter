@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form'
 
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 import { forgotPasswordSchema, type ForgotPasswordInput } from '@/features/auth/validations'
 
 export const ForgotPasswordForm = () => {
@@ -39,7 +40,7 @@ export const ForgotPasswordForm = () => {
     setIsPending(true)
     await authClient.$fetch('/forget-password', {
       method: 'POST',
-      body: { email: data.email, redirectTo: '/reset-password' },
+      body: { email: data.email, redirectTo: paths.auth.resetPassword() },
     })
     setIsPending(false)
     setSubmitted(true)
@@ -57,7 +58,7 @@ export const ForgotPasswordForm = () => {
         <p className="text-sm text-muted-foreground">
           If an account with that email exists, we sent a password reset link.
         </p>
-        <Link href="/sign-in" className="text-sm text-primary hover:underline">
+        <Link href={paths.auth.signIn()} className="text-sm text-primary hover:underline">
           Back to sign in
         </Link>
       </motion.div>

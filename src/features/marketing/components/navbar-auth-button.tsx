@@ -9,6 +9,7 @@
 import Link from 'next/link'
 
 import { useSession } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 import { Button } from '@/components/ui/button'
 
 export const NavbarAuthButton = (): React.ReactNode => {
@@ -21,14 +22,14 @@ export const NavbarAuthButton = (): React.ReactNode => {
   if (session) {
     return (
       <Button size="sm" asChild>
-        <Link href="/dashboard">Dashboard</Link>
+        <Link href={paths.dashboard.home()}>Dashboard</Link>
       </Button>
     )
   }
 
   return (
     <Button size="sm" asChild>
-      <Link href="/sign-up">Get Started</Link>
+      <Link href={paths.auth.signUp()}>Get Started</Link>
     </Button>
   )
 }

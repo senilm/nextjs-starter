@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import { useSession, signOut } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 
 export const UserMenu = (): React.ReactNode => {
   const router = useRouter()
@@ -35,7 +36,7 @@ export const UserMenu = (): React.ReactNode => {
     .slice(0, 2) ?? 'U'
 
   const handleSignOut = async (): Promise<void> => {
-    await signOut({ fetchOptions: { onSuccess: () => router.push('/sign-in') } })
+    await signOut({ fetchOptions: { onSuccess: () => router.push(paths.auth.signIn()) } })
   }
 
   return (
@@ -77,11 +78,11 @@ export const UserMenu = (): React.ReactNode => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            <DropdownMenuItem onClick={() => router.push(paths.dashboard.settings())}>
               <User className="mr-2 size-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            <DropdownMenuItem onClick={() => router.push(paths.dashboard.settings())}>
               <Settings className="mr-2 size-4" />
               Settings
             </DropdownMenuItem>

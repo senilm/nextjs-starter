@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { paths } from '@/lib/paths'
 import { useDashboardStats } from '@/features/dashboard/hooks'
 import { useSubscription } from '@/features/billing/hooks'
 
@@ -75,7 +76,7 @@ export const PlanUsageWidget = (): React.ReactNode => {
           </div>
           {subscription.plan === 'free' && (
             <Button variant="outline" size="sm" className="w-full" asChild>
-              <Link href="/dashboard/billing">
+              <Link href={paths.dashboard.billing()}>
                 Upgrade Plan
                 <ArrowUpRight className="ml-1 size-4" />
               </Link>

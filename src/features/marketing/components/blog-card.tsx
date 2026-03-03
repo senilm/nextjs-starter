@@ -9,6 +9,7 @@ import { Calendar, Clock } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { paths } from '@/lib/paths'
 import type { BlogPostMeta } from '@/features/marketing/types'
 
 interface BlogCardProps {
@@ -17,7 +18,7 @@ interface BlogCardProps {
 
 export const BlogCard = ({ post }: BlogCardProps): React.ReactNode => {
   return (
-    <Link href={`/blog/${post.slug}`}>
+    <Link href={paths.blog.post(post.slug)}>
       <Card className="h-full transition-shadow hover:shadow-md">
         <CardHeader>
           {post.tags && post.tags.length > 0 && (

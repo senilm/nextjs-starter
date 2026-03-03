@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/form'
 
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 import { resetPasswordSchema, type ResetPasswordInput } from '@/features/auth/validations'
 
 export const ResetPasswordForm = () => {
@@ -54,7 +55,7 @@ export const ResetPasswordForm = () => {
     }
 
     setSuccess(true)
-    setTimeout(() => router.push('/sign-in'), 2000)
+    setTimeout(() => router.push(paths.auth.signIn()), 2000)
   }
 
   if (success) {
@@ -128,7 +129,7 @@ export const ResetPasswordForm = () => {
       </Form>
 
       <p className="text-center text-sm text-muted-foreground">
-        <Link href="/sign-in" className="font-medium text-primary hover:underline">
+        <Link href={paths.auth.signIn()} className="font-medium text-primary hover:underline">
           Back to sign in
         </Link>
       </p>

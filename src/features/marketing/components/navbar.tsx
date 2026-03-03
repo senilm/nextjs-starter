@@ -7,22 +7,23 @@
 import Link from 'next/link'
 
 import { APP_NAME } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { Button } from '@/components/ui/button'
 import { NavbarAuthButton } from '@/features/marketing/components/navbar-auth-button'
 import { MobileNav } from '@/features/marketing/components/mobile-nav'
 import { ThemeToggle } from '@/features/marketing/components/theme-toggle'
 
 const NAV_LINKS = [
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: paths.pricing(), label: 'Pricing' },
+  { href: paths.blog.list(), label: 'Blog' },
+  { href: paths.contact(), label: 'Contact' },
 ] as const
 
 export const Navbar = (): React.ReactNode => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="text-xl font-bold tracking-tight">
+        <Link href={paths.home()} className="text-xl font-bold tracking-tight">
           {APP_NAME}
         </Link>
 

@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/layouts/user-menu'
 import { usePermission } from '@/hooks/use-permission'
 import { DASHBOARD_NAV, ADMIN_NAV, type NavItem } from '@/lib/navigation'
+import { paths } from '@/lib/paths'
 import { APP_NAME } from '@/lib/config'
 
 export const DashboardSidebar = (): React.ReactNode => {
@@ -37,7 +38,7 @@ export const DashboardSidebar = (): React.ReactNode => {
   const hasAdminAccess = usePermission('admin.access')
 
   const isActive = (href: string): boolean => {
-    if (href === '/dashboard') return pathname === '/dashboard'
+    if (href === paths.dashboard.home()) return pathname === paths.dashboard.home()
     return pathname.startsWith(href)
   }
 
@@ -47,7 +48,7 @@ export const DashboardSidebar = (): React.ReactNode => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href={paths.dashboard.home()}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Zap className="size-4" />
                 </div>

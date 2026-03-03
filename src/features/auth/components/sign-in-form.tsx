@@ -28,6 +28,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 import { signInSchema, magicLinkSchema, type SignInInput, type MagicLinkInput } from '@/features/auth/validations'
 import { SocialButtons } from '@/features/auth/components/social-buttons'
 
@@ -63,7 +64,7 @@ export const SignInForm = () => {
       return
     }
 
-    router.push('/dashboard')
+    router.push(paths.dashboard.home())
   }
 
   const onMagicLinkSubmit = async (data: MagicLinkInput): Promise<void> => {
@@ -72,7 +73,7 @@ export const SignInForm = () => {
 
     const { error: magicError } = await authClient.signIn.magicLink({
       email: data.email,
-      callbackURL: '/dashboard',
+      callbackURL: paths.dashboard.home(),
     })
 
     setIsPending(false)
@@ -131,7 +132,7 @@ export const SignInForm = () => {
                     <div className="flex items-center justify-between">
                       <FormLabel>Password</FormLabel>
                       <Link
-                        href="/forgot-password"
+                        href={paths.auth.forgotPassword()}
                         className="text-xs text-primary hover:underline"
                       >
                         Forgot password?
@@ -215,7 +216,7 @@ export const SignInForm = () => {
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
-        <Link href="/sign-up" className="font-medium text-primary hover:underline">
+        <Link href={paths.auth.signUp()} className="font-medium text-primary hover:underline">
           Sign up
         </Link>
       </p>

@@ -7,9 +7,10 @@
 import type { MetadataRoute } from 'next'
 
 import { APP_URL } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { getBlogPosts } from '@/lib/mdx'
 
-const STATIC_ROUTES = ['/', '/pricing', '/blog', '/contact'] as const
+const STATIC_ROUTES = [paths.home(), paths.pricing(), paths.blog.list(), paths.contact()] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries = STATIC_ROUTES.map((route) => ({
@@ -21,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const blogPosts = getBlogPosts()
   const blogEntries = blogPosts.map((post) => ({
-    url: `${APP_URL}/blog/${post.slug}`,
+    url: `${APP_URL}${paths.blog.post(post.slug)}`,
     lastModified: new Date(post.date),
     changeFrequency: 'monthly' as const,
     priority: 0.6,

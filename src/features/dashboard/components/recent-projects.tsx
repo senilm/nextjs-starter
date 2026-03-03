@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
 import { cn } from '@/lib/utils'
+import { paths } from '@/lib/paths'
 import { useRecentProjects } from '@/features/dashboard/hooks'
 
 const STATUS_DOT_COLOR: Record<string, string> = {
@@ -37,7 +38,7 @@ export const RecentProjects = (): React.ReactNode => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Recent Projects</CardTitle>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/projects">
+            <Link href={paths.dashboard.projects.list()}>
               View all
               <ArrowRight className="ml-1 size-4" />
             </Link>
@@ -63,7 +64,7 @@ export const RecentProjects = (): React.ReactNode => {
               description="Create your first project to get started."
               action={
                 <Button asChild size="sm">
-                  <Link href="/dashboard/projects">Create project</Link>
+                  <Link href={paths.dashboard.projects.list()}>Create project</Link>
                 </Button>
               }
             />
@@ -72,7 +73,7 @@ export const RecentProjects = (): React.ReactNode => {
               {projects.map((project) => (
                 <Link
                   key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
+                  href={paths.dashboard.projects.detail(project.id)}
                   className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@
 import Link from 'next/link'
 
 import { APP_NAME } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import { Button } from '@/components/ui/button'
 import { AnimatedSection } from '@/features/marketing/components/animated-section'
 
@@ -29,7 +30,7 @@ export const CtaBanner = (): React.ReactNode => {
                 variant="secondary"
                 asChild
               >
-                <Link href="/sign-up">Get Started Free</Link>
+                <Link href={paths.auth.signUp()}>Get Started Free</Link>
               </Button>
             </div>
           </div>

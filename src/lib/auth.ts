@@ -15,6 +15,7 @@ import { format } from 'date-fns'
 
 import { prisma } from '@/lib/prisma'
 import { APP_NAME, APP_URL, PLANS } from '@/lib/config'
+import { paths } from '@/lib/paths'
 import type { PlanKey } from '@/lib/config'
 import { sendEmail } from '@/features/email/send'
 
@@ -71,7 +72,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: `Welcome to ${APP_NAME}!`,
-        template: Welcome({ name: user.name, dashboardUrl: `${APP_URL}/dashboard` }),
+        template: Welcome({ name: user.name, dashboardUrl: `${APP_URL}${paths.dashboard.home()}` }),
       })
     },
   },
@@ -163,7 +164,7 @@ export const auth = betterAuth({
             template: SubscriptionCanceled({
               name: user.name,
               accessUntil,
-              resubscribeUrl: `${APP_URL}/dashboard/billing`,
+              resubscribeUrl: `${APP_URL}${paths.dashboard.billing()}`,
             }),
           })
         },

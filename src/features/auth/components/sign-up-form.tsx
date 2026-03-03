@@ -27,6 +27,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 
 import { authClient } from '@/lib/auth-client'
+import { paths } from '@/lib/paths'
 import { signUpSchema, type SignUpInput } from '@/features/auth/validations'
 import { SocialButtons } from '@/features/auth/components/social-buttons'
 
@@ -50,7 +51,7 @@ export const SignUpForm = () => {
       name: data.name,
       email: data.email,
       password: data.password,
-      callbackURL: '/verify-email',
+      callbackURL: paths.auth.verifyEmail(),
     })
 
     setIsPending(false)
@@ -60,7 +61,7 @@ export const SignUpForm = () => {
       return
     }
 
-    router.push('/verify-email')
+    router.push(paths.auth.verifyEmail())
   }
 
   return (
@@ -139,7 +140,7 @@ export const SignUpForm = () => {
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/sign-in" className="font-medium text-primary hover:underline">
+        <Link href={paths.auth.signIn()} className="font-medium text-primary hover:underline">
           Sign in
         </Link>
       </p>

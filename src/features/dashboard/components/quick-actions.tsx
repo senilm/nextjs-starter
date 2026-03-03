@@ -11,6 +11,7 @@ import { motion } from 'motion/react'
 import { Plus, Settings, CreditCard, Shield } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { paths } from '@/lib/paths'
 import { usePermission } from '@/hooks/use-permission'
 
 interface QuickAction {
@@ -25,25 +26,25 @@ const ACTIONS: QuickAction[] = [
   {
     title: 'New Project',
     description: 'Create a new project',
-    href: '/dashboard/projects',
+    href: paths.dashboard.projects.list(),
     icon: Plus,
   },
   {
     title: 'Account Settings',
     description: 'Update your profile',
-    href: '/dashboard/settings',
+    href: paths.dashboard.settings(),
     icon: Settings,
   },
   {
     title: 'Billing',
     description: 'Manage your subscription',
-    href: '/dashboard/billing',
+    href: paths.dashboard.billing(),
     icon: CreditCard,
   },
   {
     title: 'Admin Panel',
     description: 'Manage users & roles',
-    href: '/admin',
+    href: paths.admin.home(),
     icon: Shield,
     permission: 'admin.access',
   },

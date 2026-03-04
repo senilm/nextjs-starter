@@ -47,21 +47,21 @@ export const PlanUsageWidget = (): React.ReactNode => {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Projects</span>
                   <span className="font-medium">
-                    {stats.totalProjects} / {subscription.limits.projects}
+                    {stats.totalProjects} / {subscription.limits.projects ?? 3}
                   </span>
                 </div>
-                <Progress value={Math.round((stats.totalProjects / subscription.limits.projects) * 100)} />
+                <Progress value={Math.round((stats.totalProjects / (subscription.limits.projects ?? 3)) * 100)} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Storage</span>
                   <span className="font-medium">
-                    {stats.storageUsed} GB / {subscription.limits.storage} GB
+                    {stats.storageUsed} GB / {subscription.limits.storage ?? 1} GB
                   </span>
                 </div>
-                <Progress value={Math.round((stats.storageUsed / subscription.limits.storage) * 100)} />
+                <Progress value={Math.round((stats.storageUsed / (subscription.limits.storage ?? 1)) * 100)} />
               </div>
-              {subscription.plan === 'free' && (
+              {subscription.planKey === 'free' && (
                 <Button variant="outline" size="sm" className="w-full" asChild>
                   <Link href={paths.dashboard.billing()}>
                     Upgrade Plan

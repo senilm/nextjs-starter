@@ -12,7 +12,6 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
-import { PLANS, type PlanKey } from '@/lib/config'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ProjectFilters, ProjectsResponse, ActionResult, Project } from '@/features/projects/types'
 
@@ -77,19 +76,21 @@ export async function createProject(input: unknown): Promise<ActionResult<Projec
   const canCreate = await hasPermission(session.user.id, 'projects.create')
   if (!canCreate) return { success: false, error: 'Permission denied' }
 
-  const subscription = await prisma.subscription.findFirst({
-    where: { referenceId: session.user.id },
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId: session.user.id },
+    include: { plan: true },
   })
-  const planKey = (subscription?.plan ?? 'free') as PlanKey
-  const plan = PLANS[planKey] ?? PLANS.free
+  const limits = (subscription?.plan.limits as Record<string, number>) ?? { projects: 3 }
+  const planName = subscription?.plan.name ?? 'Free'
+  const maxProjects = limits.projects ?? 3
   const currentCount = await prisma.project.count({
     where: { userId: session.user.id, deletedAt: null },
   })
 
-  if (currentCount >= plan.limits.projects) {
+  if (currentCount >= maxProjects) {
     return {
       success: false,
-      error: `You've reached the ${plan.limits.projects} project limit on the ${planKey} plan. Upgrade to create more.`,
+      error: `You've reached the ${maxProjects} project limit on the ${planName} plan. Upgrade to create more.`,
       code: 'PLAN_LIMIT_REACHED',
     }
   }

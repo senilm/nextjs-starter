@@ -54,32 +54,36 @@ export async function getAdminStats(): Promise<AdminStats> {
   const now = new Date()
   const sevenDaysAgo = subDays(now, DAYS_IN_SIGNUPS_CHART)
   const fourteenDaysAgo = subDays(now, DAYS_IN_SIGNUPS_CHART * 2)
+  const oneMonthAgo = subMonths(now, 1)
 
   const [
     totalUsers,
     activeSubscriptions,
-    subscriptionsWithPlan,
     newSignups7d,
     prevSignups7d,
     prevActiveSubscriptions,
   ] = await Promise.all([
     prisma.user.count({ where: { deletedAt: null } }),
-    prisma.subscription.count({ where: { status: 'active' } }),
-    prisma.subscription.findMany({
-      where: { status: 'active' },
-      select: { plan: true },
+    prisma.subscription.count({
+      where: { status: 'active', plan: { key: { not: 'free' } } },
     }),
     prisma.user.count({ where: { deletedAt: null, createdAt: { gte: sevenDaysAgo } } }),
     prisma.user.count({
       where: { deletedAt: null, createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
     }),
     prisma.subscription.count({
-      where: { status: 'active', periodStart: { lt: subMonths(now, 1) } },
+      where: { status: 'active', plan: { key: { not: 'free' } }, periodStart: { lt: oneMonthAgo } },
     }),
   ])
 
-  const PLAN_PRICES: Record<string, number> = { free: 0, pro: 19, business: 49 }
-  const mrr = subscriptionsWithPlan.reduce((sum, sub) => sum + (PLAN_PRICES[sub.plan] ?? 0), 0)
+  const payments = await prisma.payment.aggregate({
+    where: {
+      status: 'succeeded',
+      paidAt: { gte: subMonths(now, 1) },
+    },
+    _sum: { amount: true },
+  })
+  const mrr = Math.round((payments._sum.amount ?? 0) / 100)
 
   const usersTrend = totalUsers > 0 ? Math.round((newSignups7d / totalUsers) * 100) : 0
   const subscriptionsTrend =
@@ -111,18 +115,15 @@ export async function getRevenueChartData(): Promise<RevenueChartData[]> {
     const monthStart = startOfMonth(subMonths(now, i))
     const monthEnd = startOfMonth(subMonths(now, i - 1))
 
-    const subs = await prisma.subscription.findMany({
+    const payments = await prisma.payment.aggregate({
       where: {
-        status: 'active',
-        periodStart: { lte: monthEnd },
-        OR: [{ periodEnd: null }, { periodEnd: { gte: monthStart } }],
+        status: 'succeeded',
+        paidAt: { gte: monthStart, lt: monthEnd },
       },
-      select: { plan: true },
+      _sum: { amount: true },
     })
 
-    const PLAN_PRICES: Record<string, number> = { free: 0, pro: 19, business: 49 }
-    const revenue = subs.reduce((sum, sub) => sum + (PLAN_PRICES[sub.plan] ?? 0), 0)
-
+    const revenue = Math.round((payments._sum.amount ?? 0) / 100)
     data.push({ month: format(monthStart, 'MMM'), revenue })
   }
 
@@ -132,32 +133,22 @@ export async function getRevenueChartData(): Promise<RevenueChartData[]> {
 export async function getSubscriptionChartData(): Promise<SubscriptionChartData[]> {
   await requireAdmin('admin.access')
 
-  const subs = await prisma.subscription.groupBy({
-    by: ['plan'],
+  const subscriptions = await prisma.subscription.findMany({
     where: { status: 'active' },
-    _count: { plan: true },
+    include: { plan: { select: { key: true } } },
   })
 
-  const freeUsers = await prisma.user.count({
-    where: {
-      deletedAt: null,
-      subscriptions: { none: { status: 'active' } },
-    },
-  })
-
-  const result: SubscriptionChartData[] = [
-    { plan: 'free', count: freeUsers, fill: CHART_PLAN_COLORS.free ?? 'hsl(var(--chart-1))' },
-  ]
-
-  for (const sub of subs) {
-    result.push({
-      plan: sub.plan,
-      count: sub._count.plan,
-      fill: CHART_PLAN_COLORS[sub.plan] ?? 'hsl(var(--chart-4))',
-    })
+  const counts: Record<string, number> = {}
+  for (const sub of subscriptions) {
+    const planKey = sub.plan.key
+    counts[planKey] = (counts[planKey] ?? 0) + 1
   }
 
-  return result
+  return Object.entries(counts).map(([plan, count]) => ({
+    plan,
+    count,
+    fill: CHART_PLAN_COLORS[plan] ?? 'hsl(var(--chart-4))',
+  }))
 }
 
 export async function getSignupChartData(): Promise<SignupChartData[]> {
@@ -218,7 +209,9 @@ export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse
         createdAt: true,
         updatedAt: true,
         role: { select: { id: true, name: true } },
-        subscriptions: { where: { status: 'active' }, select: { plan: true, status: true }, take: 1 },
+        subscription: {
+          select: { status: true, plan: { select: { key: true, name: true } } },
+        },
       },
     }),
     prisma.user.count({ where }),
@@ -227,7 +220,9 @@ export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse
   return {
     users: users.map((u) => ({
       ...u,
-      subscription: u.subscriptions[0] ?? null,
+      subscription: u.subscription
+        ? { plan: u.subscription.plan.key, status: u.subscription.status }
+        : null,
     })),
     total,
     page,
@@ -244,7 +239,9 @@ export async function getUserDetail(userId: string): Promise<UserDetail | null> 
       role: {
         include: { rolePermissions: { include: { permission: { select: { key: true } } } } },
       },
-      subscriptions: { where: { status: 'active' }, select: { plan: true, status: true }, take: 1 },
+      subscription: {
+        include: { plan: { select: { key: true, name: true } } },
+      },
       sessions: {
         select: { id: true, ipAddress: true, userAgent: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
@@ -264,7 +261,9 @@ export async function getUserDetail(userId: string): Promise<UserDetail | null> 
     emailVerified: user.emailVerified,
     twoFactorEnabled: user.twoFactorEnabled,
     role: user.role ? { id: user.role.id, name: user.role.name } : null,
-    subscription: user.subscriptions[0] ?? null,
+    subscription: user.subscription
+      ? { plan: user.subscription.plan.key, status: user.subscription.status }
+      : null,
     sessions: user.sessions,
     permissions: user.role?.rolePermissions.map((rp) => rp.permission.key) ?? [],
     createdAt: user.createdAt,
@@ -368,7 +367,7 @@ export async function getPlans(): Promise<PlanWithStats[]> {
   const plansWithStats: PlanWithStats[] = await Promise.all(
     plans.map(async (plan) => {
       const subscriberCount = await prisma.subscription.count({
-        where: { plan: plan.key, status: 'active' },
+        where: { planId: plan.id, status: 'active' },
       })
       return {
         id: plan.id,
@@ -380,6 +379,10 @@ export async function getPlans(): Promise<PlanWithStats[]> {
         trialDays: plan.trialDays,
         limits: plan.limits as Record<string, number>,
         features: plan.features as string[],
+        stripePriceId: plan.stripePriceId,
+        stripeYearlyPriceId: plan.stripeYearlyPriceId,
+        razorpayPlanId: plan.razorpayPlanId,
+        razorpayYearlyPlanId: plan.razorpayYearlyPlanId,
         isActive: plan.isActive,
         subscriberCount,
       }
@@ -402,6 +405,10 @@ export async function updatePlan(input: unknown): Promise<ActionResult> {
       description: parsed.data.description ?? null,
       features: parsed.data.features,
       isActive: parsed.data.isActive,
+      stripePriceId: parsed.data.stripePriceId ?? null,
+      stripeYearlyPriceId: parsed.data.stripeYearlyPriceId ?? null,
+      razorpayPlanId: parsed.data.razorpayPlanId ?? null,
+      razorpayYearlyPlanId: parsed.data.razorpayYearlyPlanId ?? null,
     },
   })
 

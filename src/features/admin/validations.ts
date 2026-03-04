@@ -19,6 +19,10 @@ export const updatePlanSchema = z.object({
   description: z.string().max(200, 'Description must be 200 characters or fewer').optional(),
   features: z.array(z.string()),
   isActive: z.boolean(),
+  stripePriceId: z.string().optional(),
+  stripeYearlyPriceId: z.string().optional(),
+  razorpayPlanId: z.string().optional(),
+  razorpayYearlyPlanId: z.string().optional(),
 })
 
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>

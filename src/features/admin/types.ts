@@ -80,6 +80,10 @@ export interface PlanWithStats {
   trialDays: number | null
   limits: Record<string, number>
   features: string[]
+  stripePriceId: string | null
+  stripeYearlyPriceId: string | null
+  razorpayPlanId: string | null
+  razorpayYearlyPlanId: string | null
   isActive: boolean
   subscriberCount: number
 }

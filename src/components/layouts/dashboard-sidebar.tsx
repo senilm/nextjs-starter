@@ -31,11 +31,13 @@ import { usePermission } from '@/hooks/use-permission'
 import { DASHBOARD_NAV, ADMIN_NAV, type NavItem } from '@/lib/navigation'
 import { paths } from '@/lib/paths'
 import { APP_NAME } from '@/lib/config'
+import { useSubscription } from '@/features/billing/hooks'
 
 export const DashboardSidebar = (): React.ReactNode => {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const hasAdminAccess = usePermission('admin.access')
+  const { data: subscription } = useSubscription()
 
   const isActive = (href: string): boolean => {
     if (href === paths.dashboard.home()) return pathname === paths.dashboard.home()
@@ -95,7 +97,7 @@ export const DashboardSidebar = (): React.ReactNode => {
         <SidebarSeparator />
         <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
           <Badge variant="secondary" className="group-data-[collapsible=icon]:hidden">
-            Free Plan
+            {subscription?.planName ?? 'Free'} Plan
           </Badge>
           <Button
             variant="ghost"

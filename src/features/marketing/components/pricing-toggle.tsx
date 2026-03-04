@@ -7,14 +7,20 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
-import { PLANS } from '@/lib/config'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PlanCard } from '@/features/marketing/components/plan-card'
+import { getActivePlans } from '@/features/billing/actions'
 
 export const PricingToggle = (): React.ReactNode => {
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly')
+
+  const { data: plans } = useQuery({
+    queryKey: ['plans', 'active'],
+    queryFn: getActivePlans,
+  })
 
   return (
     <div>
@@ -39,20 +45,21 @@ export const PricingToggle = (): React.ReactNode => {
       </div>
 
       <div className="grid gap-8 md:grid-cols-3">
-        {(Object.entries(PLANS) as [string, (typeof PLANS)[keyof typeof PLANS]][]).map(
-          ([key, plan]) => (
-            <PlanCard
-              key={key}
-              name={plan.name}
-              description={plan.description}
-              price={period === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
-              period={period}
-              features={plan.features}
-              badge={'badge' in plan ? plan.badge : undefined}
-              highlighted={key === 'pro'}
-            />
-          ),
-        )}
+        {plans?.map((plan) => (
+          <PlanCard
+            key={plan.id}
+            name={plan.name}
+            description={plan.description ?? ''}
+            price={
+              period === 'monthly'
+                ? Math.round((plan.monthlyPrice ?? 0) / 100)
+                : Math.round((plan.yearlyPrice ?? 0) / 100)
+            }
+            period={period}
+            features={plan.features}
+            highlighted={plan.key === 'pro'}
+          />
+        ))}
       </div>
     </div>
   )

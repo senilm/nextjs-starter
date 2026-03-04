@@ -10,7 +10,6 @@ import { headers } from 'next/headers'
 
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { PLANS, type PlanKey } from '@/lib/config'
 import type { DashboardStats, RecentProject } from '@/features/dashboard/types'
 
 const RECENT_PROJECTS_LIMIT = 5
@@ -24,12 +23,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const [totalProjects, activeProjects, subscription] = await Promise.all([
     prisma.project.count({ where: { userId, deletedAt: null } }),
     prisma.project.count({ where: { userId, deletedAt: null, status: 'active' } }),
-    prisma.subscription.findFirst({ where: { referenceId: userId } }),
+    prisma.subscription.findUnique({
+      where: { userId },
+      include: { plan: true },
+    }),
   ])
 
-  const planKey = (subscription?.plan ?? 'free') as PlanKey
-  const plan = PLANS[planKey] ?? PLANS.free
-  const storageLimit = plan.limits.storage
+  const limits = (subscription?.plan.limits as Record<string, number>) ?? { storage: 1 }
+  const storageLimit = limits.storage ?? 1
 
   return {
     totalProjects,

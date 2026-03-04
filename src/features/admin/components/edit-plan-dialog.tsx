@@ -1,7 +1,7 @@
 /**
  * @file edit-plan-dialog.tsx
  * @module features/admin/components/edit-plan-dialog
- * Dialog for editing a plan — name, description, features, active toggle.
+ * Dialog for editing a plan — name, description, features, provider price IDs, active toggle.
  */
 
 'use client'
@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { useUpdatePlan } from '@/features/admin/hooks'
 import { updatePlanSchema, type UpdatePlanInput } from '@/features/admin/validations'
 import type { PlanWithStats } from '@/features/admin/types'
@@ -41,7 +42,17 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
 
   const form = useForm<UpdatePlanInput>({
     resolver: zodResolver(updatePlanSchema),
-    defaultValues: { id: '', name: '', description: '', features: [], isActive: true },
+    defaultValues: {
+      id: '',
+      name: '',
+      description: '',
+      features: [],
+      isActive: true,
+      stripePriceId: '',
+      stripeYearlyPriceId: '',
+      razorpayPlanId: '',
+      razorpayYearlyPlanId: '',
+    },
   })
 
   useEffect(() => {
@@ -52,6 +63,10 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
         description: plan.description ?? '',
         features: plan.features,
         isActive: plan.isActive,
+        stripePriceId: plan.stripePriceId ?? '',
+        stripeYearlyPriceId: plan.stripeYearlyPriceId ?? '',
+        razorpayPlanId: plan.razorpayPlanId ?? '',
+        razorpayYearlyPlanId: plan.razorpayYearlyPlanId ?? '',
       })
     }
   }, [plan, form])
@@ -86,7 +101,7 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Plan</DialogTitle>
-          <DialogDescription>Update plan details and features.</DialogDescription>
+          <DialogDescription>Update plan details, features, and provider price IDs.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -146,6 +161,68 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
                     </button>
                   </Badge>
                 ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Stripe Price IDs</p>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="stripePriceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Monthly</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="price_..." className="text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="stripeYearlyPriceId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Yearly</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="price_..." className="text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Razorpay Plan IDs</p>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="razorpayPlanId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Monthly</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="plan_..." className="text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="razorpayYearlyPlanId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Yearly</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="plan_..." className="text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 

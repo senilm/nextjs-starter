@@ -10,8 +10,6 @@ export enum Module {
   Roles = 'roles',
   Plans = 'plans',
   Settings = 'settings',
-  Projects = 'projects',
-  Billing = 'billing',
 }
 
 export enum Action {
@@ -20,7 +18,6 @@ export enum Action {
   Create = 'create',
   Edit = 'edit',
   Delete = 'delete',
-  Manage = 'manage',
 }
 
 /** Type-safe permission key builder */

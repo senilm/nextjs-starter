@@ -159,7 +159,6 @@ model Role {
   name        String   @unique
   description String?
   isSystem    Boolean  @default(false)
-  isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?

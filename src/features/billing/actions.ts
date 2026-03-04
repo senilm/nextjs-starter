@@ -11,7 +11,6 @@ import { revalidatePath } from 'next/cache'
 
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { hasPermission } from '@/lib/rbac'
 import { getPaymentProvider, getPaymentProviderName } from '@/lib/payment'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
@@ -77,9 +76,6 @@ export async function initiateCheckout(
 ): Promise<ActionResult<CheckoutResult>> {
   const { userId, email, name } = await requireAuth()
 
-  const canManage = await hasPermission(userId, 'billing.manage')
-  if (!canManage) return { success: false, error: 'Permission denied' }
-
   const plan = await prisma.plan.findUnique({ where: { id: input.planId } })
   if (!plan || !plan.isActive) return { success: false, error: 'Plan not found or inactive' }
 
@@ -131,9 +127,6 @@ export async function initiateCheckout(
 export async function cancelSubscription(): Promise<ActionResult> {
   const { userId } = await requireAuth()
 
-  const canManage = await hasPermission(userId, 'billing.manage')
-  if (!canManage) return { success: false, error: 'Permission denied' }
-
   const subscription = await prisma.subscription.findUnique({ where: { userId } })
   if (!subscription?.providerSubscriptionId || !subscription.provider) {
     return { success: false, error: 'No active paid subscription' }
@@ -153,9 +146,6 @@ export async function cancelSubscription(): Promise<ActionResult> {
 
 export async function resumeSubscription(): Promise<ActionResult> {
   const { userId } = await requireAuth()
-
-  const canManage = await hasPermission(userId, 'billing.manage')
-  if (!canManage) return { success: false, error: 'Permission denied' }
 
   const subscription = await prisma.subscription.findUnique({ where: { userId } })
   if (!subscription?.providerSubscriptionId || !subscription.provider) {

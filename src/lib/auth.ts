@@ -86,14 +86,6 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          const defaultRole = await prisma.role.findFirst({ where: { isDefault: true } })
-          if (defaultRole) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { roleId: defaultRole.id },
-            })
-          }
-
           const freePlan = await prisma.plan.findFirst({ where: { key: 'free' } })
           if (freePlan) {
             await prisma.subscription.upsert({

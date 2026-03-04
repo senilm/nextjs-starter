@@ -2,7 +2,7 @@
  * @file global-dialogs.tsx
  * @module components/shared/global-dialogs
  * Renders globally accessible dialogs controlled by the dialog store.
- * Dialogs are lazy-loaded and permission-gated.
+ * Dialogs are lazy-loaded. Admin dialogs are permission-gated.
  */
 
 'use client'
@@ -47,8 +47,6 @@ const EditPlanDialog = lazy(() =>
 
 export const GlobalDialogs = (): React.ReactNode => {
   const { openDialogs, dialogData, closeDialog } = useDialogStore()
-  const canCreateProject = usePermission('projects.create')
-  const canEditProject = usePermission('projects.edit')
   const canInviteUser = usePermission('users.create')
   const canCreateRole = usePermission('roles.create')
   const canEditRole = usePermission('roles.edit')
@@ -56,13 +54,13 @@ export const GlobalDialogs = (): React.ReactNode => {
 
   return (
     <Suspense>
-      {canCreateProject && openDialogs[DIALOG_KEY.CREATE_PROJECT] && (
+      {openDialogs[DIALOG_KEY.CREATE_PROJECT] && (
         <CreateProjectDialog
           open
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.CREATE_PROJECT)}
         />
       )}
-      {canEditProject && openDialogs[DIALOG_KEY.EDIT_PROJECT] && (
+      {openDialogs[DIALOG_KEY.EDIT_PROJECT] && (
         <EditProjectDialog
           open
           project={(dialogData[DIALOG_KEY.EDIT_PROJECT] as Project) ?? null}

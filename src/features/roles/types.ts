@@ -9,7 +9,6 @@ export interface RoleWithPermissions {
   name: string
   description: string | null
   isSystem: boolean
-  isDefault: boolean
   userCount: number
   permissionKeys: string[]
   createdAt: Date

@@ -28,19 +28,6 @@ const PERMISSIONS = [
   { key: perm(Module.Plans, Action.Edit), module: Module.Plans, action: Action.Edit, description: 'Edit plans' },
   { key: perm(Module.Settings, Action.View), module: Module.Settings, action: Action.View, description: 'View system settings' },
   { key: perm(Module.Settings, Action.Edit), module: Module.Settings, action: Action.Edit, description: 'Edit system settings' },
-  { key: perm(Module.Projects, Action.View), module: Module.Projects, action: Action.View, description: 'View projects' },
-  { key: perm(Module.Projects, Action.Create), module: Module.Projects, action: Action.Create, description: 'Create projects' },
-  { key: perm(Module.Projects, Action.Edit), module: Module.Projects, action: Action.Edit, description: 'Edit projects' },
-  { key: perm(Module.Projects, Action.Delete), module: Module.Projects, action: Action.Delete, description: 'Delete projects' },
-  { key: perm(Module.Billing, Action.Manage), module: Module.Billing, action: Action.Manage, description: 'Manage billing' },
-]
-
-const USER_ROLE_PERMISSIONS = [
-  perm(Module.Projects, Action.View),
-  perm(Module.Projects, Action.Create),
-  perm(Module.Projects, Action.Edit),
-  perm(Module.Projects, Action.Delete),
-  perm(Module.Billing, Action.Manage),
 ]
 
 const PLANS = [
@@ -126,26 +113,14 @@ async function main(): Promise<void> {
   /* 2. Roles */
   const superAdminRole = await prisma.role.upsert({
     where: { name: 'Super Admin' },
-    update: { description: 'Full system access', isSystem: true, isDefault: false },
+    update: { description: 'Full system access', isSystem: true },
     create: {
       name: 'Super Admin',
       description: 'Full system access',
       isSystem: true,
-      isDefault: false,
     },
   })
-
-  const userRole = await prisma.role.upsert({
-    where: { name: 'User' },
-    update: { description: 'Default user role', isSystem: true, isDefault: true },
-    create: {
-      name: 'User',
-      description: 'Default user role',
-      isSystem: true,
-      isDefault: true,
-    },
-  })
-  console.log('✓ 2 system roles created (Super Admin, User)')
+  console.log('✓ 1 system role created (Super Admin)')
 
   /* 3. Role-Permission assignments */
   for (const perm of PERMISSIONS) {
@@ -155,16 +130,6 @@ async function main(): Promise<void> {
       },
       update: {},
       create: { roleId: superAdminRole.id, permissionKey: perm.key },
-    })
-  }
-
-  for (const permKey of USER_ROLE_PERMISSIONS) {
-    await prisma.rolePermission.upsert({
-      where: {
-        roleId_permissionKey: { roleId: userRole.id, permissionKey: permKey },
-      },
-      update: {},
-      create: { roleId: userRole.id, permissionKey: permKey },
     })
   }
 

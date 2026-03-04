@@ -48,7 +48,7 @@ const NAVIGATION_ACTIONS: CommandAction[] = [
 ]
 
 const QUICK_ACTIONS: CommandAction[] = [
-  { label: 'Create Project', icon: Plus, path: '/dashboard/projects', permission: 'projects.create' },
+  { label: 'Create Project', icon: Plus, path: '/dashboard/projects' },
 ]
 
 export const GlobalSearch = (): React.ReactNode => {

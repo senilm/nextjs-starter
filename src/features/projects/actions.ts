@@ -11,7 +11,6 @@ import { revalidatePath } from 'next/cache'
 
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { hasPermission } from '@/lib/rbac'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ProjectFilters, ProjectsResponse, ActionResult, Project } from '@/features/projects/types'
 
@@ -73,9 +72,6 @@ export async function createProject(input: unknown): Promise<ActionResult<Projec
   const parsed = createProjectSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
 
-  const canCreate = await hasPermission(session.user.id, 'projects.create')
-  if (!canCreate) return { success: false, error: 'Permission denied' }
-
   const subscription = await prisma.subscription.findUnique({
     where: { userId: session.user.id },
     include: { plan: true },
@@ -124,9 +120,6 @@ export async function updateProject(input: unknown): Promise<ActionResult<Projec
   const parsed = updateProjectSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
 
-  const canEdit = await hasPermission(session.user.id, 'projects.edit')
-  if (!canEdit) return { success: false, error: 'Permission denied' }
-
   const existing = await prisma.project.findFirst({
     where: { id: parsed.data.id, userId: session.user.id, deletedAt: null },
   })
@@ -158,9 +151,6 @@ export async function updateProject(input: unknown): Promise<ActionResult<Projec
 export async function deleteProject(projectId: string): Promise<ActionResult> {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return { success: false, error: 'Unauthorized' }
-
-  const canDelete = await hasPermission(session.user.id, 'projects.delete')
-  if (!canDelete) return { success: false, error: 'Permission denied' }
 
   const existing = await prisma.project.findFirst({
     where: { id: projectId, userId: session.user.id, deletedAt: null },

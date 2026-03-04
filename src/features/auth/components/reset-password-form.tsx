@@ -10,8 +10,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { motion } from 'motion/react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { PasswordInput } from '@/components/ui/password-input'
@@ -30,7 +30,6 @@ import { resetPasswordSchema, type ResetPasswordInput } from '@/features/auth/va
 
 export const ResetPasswordForm = () => {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -40,7 +39,6 @@ export const ResetPasswordForm = () => {
   })
 
   const onSubmit = async (data: ResetPasswordInput): Promise<void> => {
-    setError(null)
     setIsPending(true)
 
     const { error: resetError } = await authClient.resetPassword({
@@ -50,7 +48,7 @@ export const ResetPasswordForm = () => {
     setIsPending(false)
 
     if (resetError) {
-      setError(resetError.message ?? 'Failed to reset password')
+      toast.error(resetError.message ?? 'Failed to reset password')
       return
     }
 
@@ -101,16 +99,6 @@ export const ResetPasswordForm = () => {
               </FormItem>
             )}
           />
-
-          {error && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-destructive"
-            >
-              {error}
-            </motion.p>
-          )}
 
           <Button type="submit" className="w-full" loading={isPending}>
             Reset password

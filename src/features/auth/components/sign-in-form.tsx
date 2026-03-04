@@ -10,8 +10,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { motion } from 'motion/react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,7 +39,6 @@ import { SocialButtons } from '@/features/auth/components/social-buttons'
 
 export const SignInForm = () => {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
 
@@ -54,7 +53,6 @@ export const SignInForm = () => {
   })
 
   const onEmailSubmit = async (data: SignInInput): Promise<void> => {
-    setError(null)
     setIsPending(true)
 
     const { error: signInError } = await authClient.signIn.email({
@@ -65,7 +63,7 @@ export const SignInForm = () => {
     setIsPending(false)
 
     if (signInError) {
-      setError(signInError.message ?? 'Invalid credentials')
+      toast.error(signInError.message ?? 'Invalid credentials')
       return
     }
 
@@ -73,7 +71,6 @@ export const SignInForm = () => {
   }
 
   const onMagicLinkSubmit = async (data: MagicLinkInput): Promise<void> => {
-    setError(null)
     setIsPending(true)
 
     const { error: magicError } = await authClient.signIn.magicLink({
@@ -84,7 +81,7 @@ export const SignInForm = () => {
     setIsPending(false)
 
     if (magicError) {
-      setError(magicError.message ?? 'Failed to send magic link')
+      toast.error(magicError.message ?? 'Failed to send magic link')
       return
     }
 
@@ -147,16 +144,6 @@ export const SignInForm = () => {
                   )}
                 />
 
-                {error && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-destructive text-sm"
-                  >
-                    {error}
-                  </motion.p>
-                )}
-
                 <Button type="submit" className="w-full" loading={isPending}>
                   Sign in
                 </Button>
@@ -166,16 +153,12 @@ export const SignInForm = () => {
 
           <TabsContent value="magic-link">
             {magicLinkSent ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="py-6 text-center"
-              >
+              <div className="py-6 text-center">
                 <p className="text-sm font-medium">Check your email</p>
                 <p className="text-muted-foreground mt-1 text-sm">
                   We sent a sign-in link to your email address.
                 </p>
-              </motion.div>
+              </div>
             ) : (
               <Form {...magicForm}>
                 <form onSubmit={magicForm.handleSubmit(onMagicLinkSubmit)} className="space-y-4">
@@ -192,16 +175,6 @@ export const SignInForm = () => {
                       </FormItem>
                     )}
                   />
-
-                  {error && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-destructive text-sm"
-                    >
-                      {error}
-                    </motion.p>
-                  )}
 
                   <Button type="submit" className="w-full" loading={isPending}>
                     Send magic link

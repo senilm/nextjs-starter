@@ -10,8 +10,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'motion/react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,6 @@ export const SignUpForm = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const _inviteToken = searchParams.get('invite')
-  const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
   const form = useForm<SignUpInput>({
@@ -44,7 +43,6 @@ export const SignUpForm = () => {
   })
 
   const onSubmit = async (data: SignUpInput): Promise<void> => {
-    setError(null)
     setIsPending(true)
 
     const { error: signUpError } = await authClient.signUp.email({
@@ -57,7 +55,7 @@ export const SignUpForm = () => {
     setIsPending(false)
 
     if (signUpError) {
-      setError(signUpError.message ?? 'Something went wrong')
+      toast.error(signUpError.message ?? 'Something went wrong')
       return
     }
 
@@ -116,16 +114,6 @@ export const SignUpForm = () => {
               </FormItem>
             )}
           />
-
-          {error && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-destructive"
-            >
-              {error}
-            </motion.p>
-          )}
 
           <Button type="submit" className="w-full" loading={isPending}>
             Create account

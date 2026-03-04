@@ -16,8 +16,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/shared/page-header'
+import { BlocksSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { useSystemSettings, useUpdateSystemSettings } from '@/features/admin/hooks'
 import { systemSettingsSchema, type SystemSettingsInput } from '@/features/admin/validations'
@@ -54,21 +55,13 @@ export const SystemSettingsForm = (): React.ReactNode => {
     await updateMutation.mutateAsync(data)
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="System Settings" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader title="System Settings" description="Configure global platform settings." />
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <LoadingTransition isLoading={isLoading} loader={<BlocksSkeleton count={3} height="h-32" gap="space-y-6" />}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>General</CardTitle>
@@ -173,8 +166,9 @@ export const SystemSettingsForm = (): React.ReactNode => {
               </Button>
             </div>
           )}
-        </form>
-      </Form>
+          </form>
+        </Form>
+      </LoadingTransition>
     </div>
   )
 }

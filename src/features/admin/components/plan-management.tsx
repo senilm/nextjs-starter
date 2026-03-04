@@ -12,6 +12,7 @@ import { Palette } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatsRowSkeleton } from '@/components/shared/loading-skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { usePlans } from '@/features/admin/hooks'
 import { AdminPlanCard } from '@/features/admin/components/admin-plan-card'
@@ -27,17 +28,17 @@ export const PlanManagement = (): React.ReactNode => {
     <div className="space-y-6">
       <PageHeader title="Plans" description="View and manage subscription plans." />
 
-      {isLoading ? (
-        <StatsRowSkeleton count={3} />
-      ) : !plans?.length ? (
-        <EmptyState icon={Palette} title="No plans found" description="Plans will appear here once configured." />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <AdminPlanCard key={plan.id} plan={plan} onEdit={setEditPlan} canEdit={canEdit} />
-          ))}
-        </div>
-      )}
+      <LoadingTransition isLoading={isLoading} loader={<StatsRowSkeleton count={3} />}>
+        {!plans?.length ? (
+          <EmptyState icon={Palette} title="No plans found" description="Plans will appear here once configured." />
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {plans.map((plan) => (
+              <AdminPlanCard key={plan.id} plan={plan} onEdit={setEditPlan} canEdit={canEdit} />
+            ))}
+          </div>
+        )}
+      </LoadingTransition>
 
       <EditPlanDialog plan={editPlan} open={!!editPlan} onOpenChange={(open) => !open && setEditPlan(null)} />
     </div>

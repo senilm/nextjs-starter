@@ -11,8 +11,9 @@ import { motion } from 'motion/react'
 import { FolderKanban, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ListSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { formatRelativeTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { paths } from '@/lib/paths'
@@ -44,56 +45,49 @@ export const RecentProjects = (): React.ReactNode => {
           </Button>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={`skeleton-${i}`} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                  <Skeleton className="h-5 w-16" />
-                </div>
-              ))}
-            </div>
-          ) : !projects?.length ? (
-            <EmptyState
-              icon={FolderKanban}
-              title="No projects yet"
-              description="Create your first project to get started."
-              action={
-                <Button asChild size="sm">
-                  <Link href={paths.dashboard.projects.list()}>Create project</Link>
-                </Button>
-              }
-            />
-          ) : (
-            <div className="space-y-1">
-              {projects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={paths.dashboard.projects.detail(project.id)}
-                  className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        'size-2.5 shrink-0 rounded-full',
-                        STATUS_DOT_COLOR[project.status] ?? 'bg-gray-400',
-                      )}
-                    />
-                    <div>
-                      <p className="text-sm font-medium">{project.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Updated {formatRelativeTime(project.updatedAt)}
-                      </p>
+          <LoadingTransition
+            isLoading={isLoading}
+            loader={<ListSkeleton />}
+          >
+            {!projects?.length ? (
+              <EmptyState
+                icon={FolderKanban}
+                title="No projects yet"
+                description="Create your first project to get started."
+                action={
+                  <Button asChild size="sm">
+                    <Link href={paths.dashboard.projects.list()}>Create project</Link>
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="space-y-1">
+                {projects.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={paths.dashboard.projects.detail(project.id)}
+                    className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          'size-2.5 shrink-0 rounded-full',
+                          STATUS_DOT_COLOR[project.status] ?? 'bg-gray-400',
+                        )}
+                      />
+                      <div>
+                        <p className="text-sm font-medium">{project.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Updated {formatRelativeTime(project.updatedAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-xs capitalize text-muted-foreground">{project.status}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+                    <span className="text-xs capitalize text-muted-foreground">{project.status}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </LoadingTransition>
         </CardContent>
       </Card>
     </motion.div>

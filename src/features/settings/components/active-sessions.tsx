@@ -13,7 +13,8 @@ import { Monitor, Smartphone, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { BlocksSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { formatRelativeTime } from '@/lib/format'
 import { getActiveSessions, revokeSession, revokeAllOtherSessions } from '@/features/settings/actions'
 
@@ -87,13 +88,10 @@ export const ActiveSessions = (): React.ReactNode => {
         )}
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={`session-skeleton-${i}`} className="h-16 w-full" />
-            ))}
-          </div>
-        ) : (
+        <LoadingTransition
+          isLoading={isLoading}
+          loader={<BlocksSkeleton count={2} />}
+        >
           <div className="space-y-3">
             {sessions?.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-lg border p-3">
@@ -127,7 +125,7 @@ export const ActiveSessions = (): React.ReactNode => {
               </div>
             ))}
           </div>
-        )}
+        </LoadingTransition>
       </CardContent>
     </Card>
   )

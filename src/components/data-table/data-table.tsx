@@ -32,6 +32,7 @@ import { DataTablePagination } from '@/components/data-table/data-table-paginati
 import { DataTableColumnCustomizer } from '@/components/data-table/data-table-column-customizer'
 import { EmptyState } from '@/components/shared/empty-state'
 import { TableSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 
 interface PaginationData {
   page: number
@@ -131,67 +132,65 @@ export const DataTable = <TData, TValue>({
       {selectedCount > 0 && bulkActions}
 
       <div className="rounded-md border">
-        {isLoading ? (
-          <div className="p-4">
-            <TableSkeleton />
-          </div>
-        ) : data.length === 0 ? (
-          hasActiveFilters ? (
-            <EmptyState
-              title="No results found"
-              description="Try adjusting your search or filters."
-            />
+        <LoadingTransition isLoading={!!isLoading} loader={<div className="p-4"><TableSkeleton /></div>}>
+          {data.length === 0 ? (
+            hasActiveFilters ? (
+              <EmptyState
+                title="No results found"
+                description="Try adjusting your search or filters."
+              />
+            ) : (
+              <EmptyState
+                title={emptyTitle ?? 'No data'}
+                description={emptyDescription ?? 'No records to display.'}
+              />
+            )
           ) : (
-            <EmptyState
-              title={emptyTitle ?? 'No data'}
-              description={emptyDescription ?? 'No records to display.'}
-            />
-          )
-        ) : (
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className={onRowClick ? 'cursor-pointer focus-visible:bg-muted/50 focus-visible:outline-none' : undefined}
-                  tabIndex={onRowClick ? 0 : undefined}
-                  role={onRowClick ? 'button' : undefined}
-                  onClick={onRowClick ? (e) => {
-                    const target = e.target as HTMLElement
-                    if (target.closest('button, a, input, [role="menuitem"], [role="checkbox"], [data-radix-collection-item]')) return
-                    onRowClick(row.original)
-                  } : undefined}
-                  onKeyDown={onRowClick ? (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={onRowClick ? 'cursor-pointer focus-visible:bg-muted/50 focus-visible:outline-none' : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    role={onRowClick ? 'button' : undefined}
+                    onClick={onRowClick ? (e) => {
+                      const target = e.target as HTMLElement
+                      if (target.closest('button, a, input, [role="menuitem"], [role="checkbox"], [data-radix-collection-item]')) return
                       onRowClick(row.original)
-                    }
-                  } : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+                    } : undefined}
+                    onKeyDown={onRowClick ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onRowClick(row.original)
+                      }
+                    } : undefined}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </LoadingTransition>
       </div>
 
       {pagination && onPageChange && onLimitChange && (

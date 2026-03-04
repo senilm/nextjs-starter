@@ -13,7 +13,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { CardWithHeaderSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { formatDate } from '@/lib/format'
 import { authClient } from '@/lib/auth-client'
 import { useSubscription } from '@/features/billing/hooks'
@@ -31,22 +32,12 @@ export const PlanCard = (): React.ReactNode => {
     }
   }
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-4 w-48" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-10 w-40" />
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
-    <motion.div
+    <LoadingTransition
+      isLoading={isLoading}
+      loader={<CardWithHeaderSkeleton contentLines={1} />}
+    >
+      <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -103,5 +94,6 @@ export const PlanCard = (): React.ReactNode => {
         </CardContent>
       </Card>
     </motion.div>
+    </LoadingTransition>
   )
 }

@@ -10,7 +10,8 @@ import { Pie, PieChart, Cell } from 'recharts'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ChartSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useSubscriptionChart } from '@/features/admin/hooks'
 
 const chartConfig = {
@@ -29,27 +30,27 @@ export const SubscriptionsChart = (): React.ReactNode => {
         <CardDescription>Active subscriptions by plan</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading || !data ? (
-          <Skeleton className="h-[300px] w-full" />
-        ) : (
-          <ChartContainer config={chartConfig} className="mx-auto h-[300px] w-full">
-            <PieChart accessibilityLayer>
-              <ChartTooltip content={<ChartTooltipContent nameKey="plan" />} />
-              <Pie
-                data={data}
-                dataKey="count"
-                nameKey="plan"
-                innerRadius={60}
-                outerRadius={100}
-                strokeWidth={2}
-              >
-                {data.map((entry) => (
-                  <Cell key={entry.plan} fill={entry.fill} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-        )}
+        <LoadingTransition isLoading={isLoading || !data} loader={<ChartSkeleton />}>
+          {data && (
+            <ChartContainer config={chartConfig} className="mx-auto h-[300px] w-full">
+              <PieChart accessibilityLayer>
+                <ChartTooltip content={<ChartTooltipContent nameKey="plan" />} />
+                <Pie
+                  data={data}
+                  dataKey="count"
+                  nameKey="plan"
+                  innerRadius={60}
+                  outerRadius={100}
+                  strokeWidth={2}
+                >
+                  {data.map((entry) => (
+                    <Cell key={entry.plan} fill={entry.fill} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+          )}
+        </LoadingTransition>
       </CardContent>
     </Card>
   )

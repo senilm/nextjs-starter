@@ -10,7 +10,8 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ChartSkeleton } from '@/components/shared/loading-skeleton'
+import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useRevenueChart } from '@/features/admin/hooks'
 
 const chartConfig = {
@@ -27,19 +28,19 @@ export const RevenueChart = (): React.ReactNode => {
         <CardDescription>MRR over the last 12 months</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading || !data ? (
-          <Skeleton className="h-[300px] w-full" />
-        ) : (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <BarChart data={data} accessibilityLayer>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-              <YAxis tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ChartContainer>
-        )}
+        <LoadingTransition isLoading={isLoading || !data} loader={<ChartSkeleton />}>
+          {data && (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart data={data} accessibilityLayer>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                <YAxis tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          )}
+        </LoadingTransition>
       </CardContent>
     </Card>
   )

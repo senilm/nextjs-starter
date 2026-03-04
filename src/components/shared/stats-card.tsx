@@ -6,7 +6,6 @@
 
 'use client'
 
-import { motion } from 'motion/react'
 import { type LucideIcon } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'

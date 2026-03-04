@@ -1,0 +1,231 @@
+// ──────────────────────────────────────
+// ShipStation — Database Schema (DBML)
+// ──────────────────────────────────────
+// Paste into https://dbdiagram.io to visualize.
+// Reflects final state after pluggable payment provider integration.
+
+// ──────────────────────────────────────
+// Better Auth Core Tables
+// ──────────────────────────────────────
+
+Table user {
+  id               String    [pk, default: `cuid()`]
+  name             String
+  email            String    [unique]
+  emailVerified    Boolean   [default: false]
+  image            String
+  roleId           String
+  paymentCustomerId String   [note: 'Provider customer ID (Stripe cus_xxx or Razorpay cust_xxx)']
+  twoFactorEnabled Boolean   [default: false]
+  isActive         Boolean   [default: true]
+  createdAt        DateTime  [default: `now()`]
+  updatedAt        DateTime
+  deletedAt        DateTime  [note: 'Soft delete']
+}
+
+Table session {
+  id        String    [pk, default: `cuid()`]
+  userId    String
+  token     String    [unique]
+  expiresAt DateTime
+  ipAddress String
+  userAgent String
+  createdAt DateTime  [default: `now()`]
+  updatedAt DateTime
+}
+
+Table account {
+  id                    String    [pk, default: `cuid()`]
+  userId                String
+  accountId             String
+  providerId            String    [note: 'e.g. credential, google, github']
+  accessToken           String
+  refreshToken          String
+  accessTokenExpiresAt  DateTime
+  refreshTokenExpiresAt DateTime
+  scope                 String
+  idToken               String
+  password              String    [note: 'Hashed, for credential provider']
+  createdAt             DateTime  [default: `now()`]
+  updatedAt             DateTime
+}
+
+Table verification {
+  id         String    [pk, default: `cuid()`]
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime  [default: `now()`]
+  updatedAt  DateTime
+}
+
+// ──────────────────────────────────────
+// Better Auth Plugin Tables
+// ──────────────────────────────────────
+
+Table twoFactor {
+  id          String  [pk, default: `cuid()`]
+  userId      String
+  secret      String
+  backupCodes String
+}
+
+// ──────────────────────────────────────
+// Billing Tables
+// ──────────────────────────────────────
+
+Table plans {
+  id                   String    [pk, default: `cuid()`]
+  key                  String    [unique, note: 'e.g. free, pro, enterprise']
+  name                 String
+  description          String
+  monthlyPrice         Int       [note: 'In smallest currency unit (cents/paise)']
+  yearlyPrice          Int
+  trialDays            Int
+  limits               Json      [note: '{ maxProjects, maxStorage, ... }']
+  features             Json      [note: '["Feature 1", "Feature 2", ...]']
+  stripePriceId        String    [note: 'Stripe monthly Price ID (price_xxx)']
+  stripeYearlyPriceId  String    [note: 'Stripe yearly Price ID (price_xxx)']
+  razorpayPlanId       String    [note: 'Razorpay monthly Plan ID (plan_xxx)']
+  razorpayYearlyPlanId String    [note: 'Razorpay yearly Plan ID (plan_xxx)']
+  isActive             Boolean   [default: true]
+  createdAt            DateTime  [default: `now()`]
+  updatedAt            DateTime
+}
+
+Table subscription {
+  id                     String    [pk, unique, note: 'One row per user — always UPDATE, never INSERT new']
+  userId                 String    [unique, note: 'One-to-one with user']
+  planId                 String
+  provider               String    [note: 'null (free) | stripe | razorpay']
+  providerCustomerId     String    [note: 'Provider customer ID, null for free']
+  providerSubscriptionId String    [note: 'Provider subscription ID, null for free']
+  status                 String    [default: 'active', note: 'active | trialing']
+  interval               String    [note: 'null (free) | monthly | yearly']
+  periodStart            DateTime  [note: 'null for free']
+  periodEnd              DateTime  [note: 'null for free']
+  cancelAtPeriodEnd      Boolean   [default: false]
+  trialStart             DateTime
+  trialEnd               DateTime
+  createdAt              DateTime  [default: `now()`]
+  updatedAt              DateTime
+}
+
+Table payment {
+  id                String    [pk, default: `cuid()`]
+  userId            String
+  subscriptionId    String
+  planId            String    [note: 'FK to plan — snapshot of which plan this payment was for']
+  provider          String    [note: 'stripe | razorpay']
+  providerPaymentId String    [note: 'Stripe PaymentIntent ID (pi_xxx) or Razorpay payment ID (pay_xxx)']
+  amount            Int       [note: 'In smallest currency unit (cents/paise)']
+  currency          String    [default: 'usd', note: 'ISO 4217 code (usd, inr, etc.)']
+  status            String    [note: 'succeeded | failed | refunded']
+  interval          String    [note: 'monthly | yearly — billing interval at time of payment']
+  invoiceUrl        String    [note: 'Provider-hosted invoice/receipt URL']
+  paidAt            DateTime
+  createdAt         DateTime  [default: `now()`]
+}
+
+// ──────────────────────────────────────
+// RBAC Tables
+// ──────────────────────────────────────
+
+Table roles {
+  id          String    [pk, default: `cuid()`]
+  name        String    [unique]
+  description String
+  isSystem    Boolean   [default: false]
+  isDefault   Boolean   [default: false]
+  createdAt   DateTime  [default: `now()`]
+  updatedAt   DateTime
+  deletedAt   DateTime  [note: 'Soft delete']
+}
+
+Table permissions {
+  id          String    [pk, default: `cuid()`]
+  key         String    [unique, note: 'e.g. users.view, billing.manage']
+  module      String
+  action      String
+  description String
+  createdAt   DateTime  [default: `now()`]
+}
+
+Table role_permissions {
+  id           String  [pk, default: `cuid()`]
+  roleId       String
+  permissionId String
+
+  indexes {
+    (roleId, permissionId) [unique]
+  }
+}
+
+// ──────────────────────────────────────
+// User Invitation
+// ──────────────────────────────────────
+
+Table user_invitations {
+  id        String    [pk, default: `cuid()`]
+  email     String
+  roleId    String
+  invitedBy String
+  token     String    [unique]
+  status    String    [default: 'pending', note: 'pending | accepted | expired']
+  expiresAt DateTime
+  createdAt DateTime  [default: `now()`]
+}
+
+// ──────────────────────────────────────
+// Project (CRUD Example)
+// ──────────────────────────────────────
+
+Table projects {
+  id          String    [pk, default: `cuid()`]
+  userId      String
+  name        String
+  description String
+  status      String    [default: 'active']
+  createdAt   DateTime  [default: `now()`]
+  updatedAt   DateTime
+  deletedAt   DateTime  [note: 'Soft delete']
+}
+
+// ──────────────────────────────────────
+// System Settings (Singleton)
+// ──────────────────────────────────────
+
+Table system_settings {
+  id              String    [pk, default: `cuid()`]
+  siteName        String    [default: 'ShipStation']
+  siteUrl         String    [default: 'http://localhost:3000']
+  supportEmail    String    [default: 'support@shipstation.dev']
+  announcementBar String
+  maintenanceMode Boolean   [default: false]
+  createdAt       DateTime  [default: `now()`]
+  updatedAt       DateTime
+}
+
+// ──────────────────────────────────────
+// Relations
+// ──────────────────────────────────────
+
+// Auth
+Ref: session.userId > user.id [delete: Cascade]
+Ref: account.userId > user.id [delete: Cascade]
+Ref: twoFactor.userId > user.id [delete: Cascade]
+
+// RBAC
+Ref: user.roleId > roles.id
+Ref: role_permissions.roleId > roles.id [delete: Cascade]
+Ref: role_permissions.permissionId > permissions.id [delete: Cascade]
+
+// Billing
+Ref: subscription.userId > user.id [delete: Cascade]
+Ref: subscription.planId > plans.id
+Ref: payment.userId > user.id [delete: Cascade]
+Ref: payment.subscriptionId > subscription.id [delete: Cascade]
+Ref: payment.planId > plans.id
+
+// Projects
+Ref: projects.userId > user.id [delete: Cascade]

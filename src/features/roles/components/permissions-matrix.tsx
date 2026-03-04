@@ -13,13 +13,13 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useAllPermissions } from '@/features/roles/hooks'
 
 interface PermissionsMatrixProps {
-  selectedIds: string[]
-  onToggle: (permissionId: string) => void
+  selectedKeys: string[]
+  onToggle: (permissionKey: string) => void
   disabled?: boolean
 }
 
 export const PermissionsMatrix = ({
-  selectedIds,
+  selectedKeys,
   onToggle,
   disabled = false,
 }: PermissionsMatrixProps): React.ReactNode => {
@@ -37,14 +37,14 @@ export const PermissionsMatrix = ({
               <h4 className="text-sm font-semibold capitalize">{group.module}</h4>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {group.permissions.map((perm) => (
-                  <div key={perm.id} className="flex items-center space-x-2">
+                  <div key={perm.key} className="flex items-center space-x-2">
                     <Checkbox
-                      id={perm.id}
-                      checked={selectedIds.includes(perm.id)}
-                      onCheckedChange={() => onToggle(perm.id)}
+                      id={perm.key}
+                      checked={selectedKeys.includes(perm.key)}
+                      onCheckedChange={() => onToggle(perm.key)}
                       disabled={disabled}
                     />
-                    <Label htmlFor={perm.id} className="text-sm font-normal">
+                    <Label htmlFor={perm.key} className="text-sm font-normal">
                       {perm.action}
                     </Label>
                   </div>

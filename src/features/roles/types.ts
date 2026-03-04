@@ -18,7 +18,6 @@ export interface RoleWithPermissions {
 export interface PermissionGroup {
   module: string
   permissions: {
-    id: string
     key: string
     action: string
     description: string | null

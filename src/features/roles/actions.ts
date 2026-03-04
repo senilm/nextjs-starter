@@ -86,7 +86,6 @@ export async function getAllPermissions(): Promise<PermissionGroup[]> {
       grouped.set(perm.module, { module: perm.module, permissions: [] })
     }
     grouped.get(perm.module)!.permissions.push({
-      id: perm.id,
       key: perm.key,
       action: perm.action,
       description: perm.description,
@@ -112,7 +111,7 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       rolePermissions: {
-        create: parsed.data.permissionIds.map((permissionId) => ({ permissionId })),
+        create: parsed.data.permissionKeys.map((permissionKey) => ({ permissionKey })),
       },
     },
     include: {
@@ -165,9 +164,9 @@ export async function updateRole(input: unknown): Promise<ActionResult> {
 
     await tx.rolePermission.deleteMany({ where: { roleId: parsed.data.id } })
     await tx.rolePermission.createMany({
-      data: parsed.data.permissionIds.map((permissionId) => ({
+      data: parsed.data.permissionKeys.map((permissionKey) => ({
         roleId: parsed.data.id,
-        permissionId,
+        permissionKey,
       })),
     })
   })

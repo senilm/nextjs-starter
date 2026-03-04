@@ -6,7 +6,6 @@
 
 'use client'
 
-import { useAllPermissions } from '@/features/roles/hooks'
 import type { RoleWithPermissions } from '@/features/roles/types'
 
 import {
@@ -24,8 +23,6 @@ interface RoleFormDialogProps {
 }
 
 export const RoleFormDialog = ({ role, open, onOpenChange }: RoleFormDialogProps): React.ReactNode => {
-  const { data: permissionGroups } = useAllPermissions()
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -38,7 +35,6 @@ export const RoleFormDialog = ({ role, open, onOpenChange }: RoleFormDialogProps
         {open && (
           <RoleFormContent
             role={role}
-            permissionGroups={permissionGroups ?? []}
             onClose={() => onOpenChange(false)}
           />
         )}
@@ -62,45 +58,42 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useCreateRole, useUpdateRole } from '@/features/roles/hooks'
 import { createRoleSchema, type CreateRoleInput } from '@/features/roles/validations'
 import { PermissionsMatrix } from '@/features/roles/components/permissions-matrix'
-import type { PermissionGroup } from '@/features/roles/types'
 
 interface RoleFormContentProps {
   role: RoleWithPermissions | null
-  permissionGroups: PermissionGroup[]
   onClose: () => void
 }
 
-const RoleFormContent = ({ role, permissionGroups, onClose }: RoleFormContentProps): React.ReactNode => {
+const RoleFormContent = ({ role, onClose }: RoleFormContentProps): React.ReactNode => {
   const isEditing = !!role
   const createMutation = useCreateRole()
   const updateMutation = useUpdateRole()
 
-  const deriveInitialIds = (): string[] => {
-    if (!role || !permissionGroups.length) return []
-    const allPerms = permissionGroups.flatMap((g) => g.permissions)
-    return allPerms.filter((p) => role.permissionKeys.includes(p.key)).map((p) => p.id)
+  const deriveInitialKeys = (): string[] => {
+    if (!role) return []
+    return [...role.permissionKeys]
   }
 
-  const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>(deriveInitialIds)
+  const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<string[]>(deriveInitialKeys)
 
   const form = useForm<CreateRoleInput>({
     resolver: zodResolver(createRoleSchema),
     defaultValues: {
       name: role?.name ?? '',
       description: role?.description ?? '',
-      permissionIds: [],
+      permissionKeys: [],
     },
   })
 
-  const handleTogglePermission = useCallback((permissionId: string): void => {
-    setSelectedPermissionIds((prev) =>
-      prev.includes(permissionId) ? prev.filter((id) => id !== permissionId) : [...prev, permissionId],
+  const handleTogglePermission = useCallback((permissionKey: string): void => {
+    setSelectedPermissionKeys((prev) =>
+      prev.includes(permissionKey) ? prev.filter((k) => k !== permissionKey) : [...prev, permissionKey],
     )
   }, [])
 
   const onSubmit = async (data: CreateRoleInput): Promise<void> => {
-    if (selectedPermissionIds.length === 0) {
-      form.setError('permissionIds', { message: 'At least one permission is required' })
+    if (selectedPermissionKeys.length === 0) {
+      form.setError('permissionKeys', { message: 'At least one permission is required' })
       return
     }
 
@@ -109,11 +102,11 @@ const RoleFormContent = ({ role, permissionGroups, onClose }: RoleFormContentPro
         id: role.id,
         name: data.name,
         description: data.description,
-        permissionIds: selectedPermissionIds,
+        permissionKeys: selectedPermissionKeys,
       })
       if (result.success) onClose()
     } else {
-      const result = await createMutation.mutateAsync({ ...data, permissionIds: selectedPermissionIds })
+      const result = await createMutation.mutateAsync({ ...data, permissionKeys: selectedPermissionKeys })
       if (result.success) onClose()
     }
   }
@@ -156,13 +149,13 @@ const RoleFormContent = ({ role, permissionGroups, onClose }: RoleFormContentPro
           <FormLabel>Permissions</FormLabel>
           <ScrollArea className="h-64 rounded-md border p-4">
             <PermissionsMatrix
-              selectedIds={selectedPermissionIds}
+              selectedKeys={selectedPermissionKeys}
               onToggle={handleTogglePermission}
               disabled={isSystemRole && role?.name === 'Super Admin'}
             />
           </ScrollArea>
-          {form.formState.errors.permissionIds && (
-            <p className="text-sm text-destructive">{form.formState.errors.permissionIds.message}</p>
+          {form.formState.errors.permissionKeys && (
+            <p className="text-sm text-destructive">{form.formState.errors.permissionKeys.message}</p>
           )}
         </div>
 

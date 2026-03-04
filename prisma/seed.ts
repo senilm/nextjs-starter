@@ -148,26 +148,23 @@ async function main(): Promise<void> {
   console.log('✓ 2 system roles created (Super Admin, User)')
 
   /* 3. Role-Permission assignments */
-  const allPermissions = await prisma.permission.findMany()
-
-  for (const perm of allPermissions) {
+  for (const perm of PERMISSIONS) {
     await prisma.rolePermission.upsert({
       where: {
-        roleId_permissionId: { roleId: superAdminRole.id, permissionId: perm.id },
+        roleId_permissionKey: { roleId: superAdminRole.id, permissionKey: perm.key },
       },
       update: {},
-      create: { roleId: superAdminRole.id, permissionId: perm.id },
+      create: { roleId: superAdminRole.id, permissionKey: perm.key },
     })
   }
 
-  const userPermissions = allPermissions.filter((p) => USER_ROLE_PERMISSIONS.includes(p.key))
-  for (const perm of userPermissions) {
+  for (const permKey of USER_ROLE_PERMISSIONS) {
     await prisma.rolePermission.upsert({
       where: {
-        roleId_permissionId: { roleId: userRole.id, permissionId: perm.id },
+        roleId_permissionKey: { roleId: userRole.id, permissionKey: permKey },
       },
       update: {},
-      create: { roleId: userRole.id, permissionId: perm.id },
+      create: { roleId: userRole.id, permissionKey: permKey },
     })
   }
 

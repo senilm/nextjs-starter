@@ -53,6 +53,10 @@ const PLANS = [
     trialDays: null,
     limits: { projects: 3, storage: 1 },
     features: ['3 projects', '1 GB storage', 'Community support'],
+    stripePriceId: null,
+    stripeYearlyPriceId: null,
+    razorpayPlanId: null,
+    razorpayYearlyPlanId: null,
   },
   {
     key: 'pro',
@@ -69,6 +73,10 @@ const PLANS = [
       'Advanced analytics',
       'Custom domains',
     ],
+    stripePriceId: null,
+    stripeYearlyPriceId: null,
+    razorpayPlanId: null,
+    razorpayYearlyPlanId: null,
   },
   {
     key: 'business',
@@ -87,6 +95,10 @@ const PLANS = [
       'SSO',
       'Audit logs',
     ],
+    stripePriceId: null,
+    stripeYearlyPriceId: null,
+    razorpayPlanId: null,
+    razorpayYearlyPlanId: null,
   },
 ]
 
@@ -185,13 +197,33 @@ async function main(): Promise<void> {
         trialDays: plan.trialDays,
         limits: plan.limits,
         features: plan.features,
+        stripePriceId: plan.stripePriceId,
+        stripeYearlyPriceId: plan.stripeYearlyPriceId,
+        razorpayPlanId: plan.razorpayPlanId,
+        razorpayYearlyPlanId: plan.razorpayYearlyPlanId,
       },
       create: plan,
     })
   }
   console.log('✓ 3 plans configured')
 
-  /* 6. Sample projects */
+  /* 6. Free subscription for admin user */
+  const freePlan = await prisma.plan.findFirst({ where: { key: 'free' } })
+  if (freePlan) {
+    await prisma.subscription.upsert({
+      where: { userId: adminUser.id },
+      update: {},
+      create: {
+        userId: adminUser.id,
+        planId: freePlan.id,
+        provider: null,
+        status: 'active',
+      },
+    })
+  }
+  console.log('✓ Free subscription assigned to admin user')
+
+  /* 7. Sample projects */
   const existingProjects = await prisma.project.count({ where: { userId: adminUser.id } })
   if (existingProjects === 0) {
     await prisma.project.createMany({
@@ -200,7 +232,7 @@ async function main(): Promise<void> {
   }
   console.log('✓ 5 sample projects created')
 
-  /* 7. System settings */
+  /* 8. System settings */
   const settingsCount = await prisma.systemSettings.count()
   if (settingsCount === 0) {
     await prisma.systemSettings.create({

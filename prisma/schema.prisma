@@ -17,28 +17,28 @@ datasource db {
 // ──────────────────────────────────────
 // These tables are managed by Better Auth. Custom fields (roleId,
 // isActive, deletedAt) are added via Better Auth's user config.
-// Full Better Auth wiring happens in Module 01.
 
 model User {
-  id               String    @id @default(cuid())
-  name             String
-  email            String    @unique
-  emailVerified    Boolean   @default(false)
-  image            String?
-  roleId           String?
-  role             Role?     @relation("UserRole", fields: [roleId], references: [id])
-  stripeCustomerId String?
-  twoFactorEnabled Boolean   @default(false)
-  isActive         Boolean   @default(true)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  deletedAt        DateTime?
+  id                String    @id @default(cuid())
+  name              String
+  email             String    @unique
+  emailVerified     Boolean   @default(false)
+  image             String?
+  roleId            String?
+  role              Role?     @relation("UserRole", fields: [roleId], references: [id])
+  paymentCustomerId String?
+  twoFactorEnabled  Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
 
-  sessions      Session[]
-  accounts      Account[]
-  projects      Project[]
-  twoFactors    TwoFactor[]
-  subscriptions Subscription[]
+  sessions     Session[]
+  accounts     Account[]
+  projects     Project[]
+  twoFactors   TwoFactor[]
+  subscription Subscription?
+  payments     Payment[]
 
   @@map("user")
 }
@@ -58,20 +58,20 @@ model Session {
 }
 
 model Account {
-  id                String    @id @default(cuid())
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accountId         String
-  providerId        String
-  accessToken       String?
-  refreshToken      String?
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
-  scope             String?
-  idToken           String?
-  password          String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@map("account")
 }
@@ -101,24 +101,53 @@ model TwoFactor {
   @@map("twoFactor")
 }
 
+// ──────────────────────────────────────
+// Billing Tables
+// ──────────────────────────────────────
+
 model Subscription {
   id                     String    @id @default(cuid())
-  plan                   String
-  referenceId            String
-  user                   User      @relation(fields: [referenceId], references: [id], onDelete: Cascade)
-  stripeCustomerId       String?
-  stripeSubscriptionId   String?
-  status                 String?
+  userId                 String    @unique
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId                 String
+  plan                   Plan      @relation(fields: [planId], references: [id])
+  provider               String?
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  status                 String    @default("active")
+  interval               String?
   periodStart            DateTime?
   periodEnd              DateTime?
-  cancelAtPeriodEnd      Boolean?
-  seats                  Int?
+  cancelAtPeriodEnd      Boolean   @default(false)
   trialStart             DateTime?
   trialEnd               DateTime?
-  billingInterval        String?
-  stripeScheduleId       String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  payments Payment[]
 
   @@map("subscription")
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId    String
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  planId            String
+  plan              Plan     @relation(fields: [planId], references: [id])
+  provider          String
+  providerPaymentId String
+  amount            Int
+  currency          String   @default("usd")
+  status            String
+  interval          String
+  invoiceUrl        String?
+  paidAt            DateTime
+  createdAt         DateTime @default(now())
+
+  @@map("payment")
 }
 
 // ──────────────────────────────────────
@@ -201,22 +230,29 @@ model Project {
 }
 
 // ──────────────────────────────────────
-// Plans (Display Config)
+// Plans
 // ──────────────────────────────────────
 
 model Plan {
-  id           String   @id @default(cuid())
-  key          String   @unique
-  name         String
-  description  String?
-  monthlyPrice Int?
-  yearlyPrice  Int?
-  trialDays    Int?
-  limits       Json
-  features     Json
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  key                  String   @unique
+  name                 String
+  description          String?
+  monthlyPrice         Int?
+  yearlyPrice          Int?
+  trialDays            Int?
+  limits               Json
+  features             Json
+  stripePriceId        String?
+  stripeYearlyPriceId  String?
+  razorpayPlanId       String?
+  razorpayYearlyPlanId String?
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  subscriptions Subscription[]
+  payments      Payment[]
 
   @@map("plans")
 }

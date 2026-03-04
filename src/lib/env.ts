@@ -6,6 +6,8 @@
 
 import { z } from 'zod/v4'
 
+const paymentProviderSchema = z.enum(['stripe', 'razorpay']).optional().default('stripe')
+
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   BETTER_AUTH_SECRET: z.string().min(
@@ -13,15 +15,6 @@ const envSchema = z.object({
     'BETTER_AUTH_SECRET must be at least 32 characters. Generate with: openssl rand -base64 32',
   ),
   BETTER_AUTH_URL: z.string().url(),
-  STRIPE_SECRET_KEY: z.string().startsWith('sk_', 'STRIPE_SECRET_KEY must start with sk_'),
-  STRIPE_WEBHOOK_SECRET: z.string().startsWith(
-    'whsec_',
-    'STRIPE_WEBHOOK_SECRET must start with whsec_',
-  ),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith(
-    'pk_',
-    'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_',
-  ),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
@@ -36,11 +29,19 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
-  /* Stripe price IDs — optional for dev (required for billing to work) */
-  STRIPE_PRO_MONTHLY_PRICE_ID: z.string().optional(),
-  STRIPE_PRO_YEARLY_PRICE_ID: z.string().optional(),
-  STRIPE_BUSINESS_MONTHLY_PRICE_ID: z.string().optional(),
-  STRIPE_BUSINESS_YEARLY_PRICE_ID: z.string().optional(),
+  /* Payment provider — one-time choice (set before launch) */
+  PAYMENT_PROVIDER: paymentProviderSchema,
+
+  /* Stripe — required when PAYMENT_PROVIDER=stripe */
+  STRIPE_SECRET_KEY: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  /* Razorpay — required when PAYMENT_PROVIDER=razorpay */
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
   /* AWS S3 — optional (required for file uploads) */
   AWS_S3_BUCKET: z.string().optional(),

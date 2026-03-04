@@ -1,7 +1,7 @@
 /**
  * @file auth.ts
  * @module lib/auth
- * Better Auth server configuration — auth, social login, 2FA, billing.
+ * Better Auth server configuration — auth, social login, 2FA.
  */
 
 import { betterAuth } from 'better-auth'
@@ -9,17 +9,11 @@ import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { twoFactor, magicLink } from 'better-auth/plugins'
 import { customSession } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
-import { stripe } from '@better-auth/stripe'
-import Stripe from 'stripe'
-import { format } from 'date-fns'
 
 import { prisma } from '@/lib/prisma'
-import { APP_NAME, APP_URL, PLANS } from '@/lib/config'
+import { APP_NAME, APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
-import type { PlanKey } from '@/lib/config'
 import { sendEmail } from '@/features/email/send'
-
-const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
@@ -81,7 +75,7 @@ export const auth = betterAuth({
     changeEmail: { enabled: true },
     additionalFields: {
       roleId: { type: 'string', required: false },
-      stripeCustomerId: { type: 'string', required: false },
+      paymentCustomerId: { type: 'string', required: false },
       isActive: { type: 'boolean', defaultValue: true },
       deletedAt: { type: 'date', required: false },
       twoFactorEnabled: { type: 'boolean', defaultValue: false },
@@ -97,6 +91,20 @@ export const auth = betterAuth({
             await prisma.user.update({
               where: { id: user.id },
               data: { roleId: defaultRole.id },
+            })
+          }
+
+          const freePlan = await prisma.plan.findFirst({ where: { key: 'free' } })
+          if (freePlan) {
+            await prisma.subscription.upsert({
+              where: { userId: user.id },
+              update: {},
+              create: {
+                userId: user.id,
+                planId: freePlan.id,
+                provider: null,
+                status: 'active',
+              },
             })
           }
         },
@@ -115,75 +123,6 @@ export const auth = betterAuth({
           subject: `Sign in to ${APP_NAME}`,
           template: MagicLink({ loginUrl: url }),
         })
-      },
-    }),
-    stripe({
-      stripeClient,
-      stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
-      createCustomerOnSignUp: true,
-      subscription: {
-        enabled: true,
-        plans: [
-          {
-            name: 'free',
-            limits: { projects: 3, storage: 1 },
-          },
-          {
-            name: 'pro',
-            priceId: process.env.STRIPE_PRO_MONTHLY_PRICE_ID!,
-            annualDiscountPriceId: process.env.STRIPE_PRO_YEARLY_PRICE_ID,
-            limits: { projects: 25, storage: 10 },
-            freeTrial: { days: 14 },
-          },
-          {
-            name: 'business',
-            priceId: process.env.STRIPE_BUSINESS_MONTHLY_PRICE_ID!,
-            annualDiscountPriceId: process.env.STRIPE_BUSINESS_YEARLY_PRICE_ID,
-            limits: { projects: 100, storage: 50 },
-          },
-        ],
-        onSubscriptionComplete: async ({ subscription, plan }) => {
-          const user = await prisma.user.findUnique({
-            where: { id: subscription.referenceId },
-          })
-          if (!user) return
-          const { PaymentConfirmation } = await import('../../emails/payment-confirmation')
-          const planConfig = PLANS[plan.name as PlanKey]
-          const price = planConfig?.monthlyPrice ?? 0
-          const amount = `$${price.toFixed(2)}`
-          const nextBillingDate = subscription.periodEnd
-            ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
-            : 'N/A'
-          await sendEmail({
-            to: user.email,
-            subject: `Payment confirmed — ${APP_NAME}`,
-            template: PaymentConfirmation({
-              name: user.name,
-              planName: planConfig?.name ?? plan.name,
-              amount,
-              nextBillingDate,
-            }),
-          })
-        },
-        onSubscriptionCancel: async ({ subscription }) => {
-          const user = await prisma.user.findUnique({
-            where: { id: subscription.referenceId },
-          })
-          if (!user) return
-          const { SubscriptionCanceled } = await import('../../emails/subscription-canceled')
-          const accessUntil = subscription.periodEnd
-            ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
-            : 'end of current period'
-          await sendEmail({
-            to: user.email,
-            subject: `Subscription canceled — ${APP_NAME}`,
-            template: SubscriptionCanceled({
-              name: user.name,
-              accessUntil,
-              resubscribeUrl: `${APP_URL}${paths.dashboard.billing()}`,
-            }),
-          })
-        },
       },
     }),
     customSession(async ({ user, session }) => {

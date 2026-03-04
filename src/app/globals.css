@@ -5,6 +5,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer base {
+  * {
+    scrollbar-width: none;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

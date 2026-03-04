@@ -58,7 +58,10 @@ export function useCreateRole(): ReturnType<
         toast.error(result.error ?? 'Failed to create role')
       }
     },
-    onError: () => toast.error('Failed to create role'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
+      toast.error('Failed to create role')
+    },
   })
 }
 
@@ -74,7 +77,10 @@ export function useUpdateRole(): ReturnType<typeof useMutation<ActionResult, Err
         toast.error(result.error ?? 'Failed to update role')
       }
     },
-    onError: () => toast.error('Failed to update role'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
+      toast.error('Failed to update role')
+    },
   })
 }
 
@@ -90,6 +96,9 @@ export function useDeleteRole(): ReturnType<typeof useMutation<ActionResult, Err
         toast.error(result.error ?? 'Failed to delete role')
       }
     },
-    onError: () => toast.error('Failed to delete role'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
+      toast.error('Failed to delete role')
+    },
   })
 }

@@ -49,6 +49,7 @@ export function useCreateProject(): ReturnType<typeof useMutation<ActionResult<P
       }
     },
     onError: () => {
+      void queryClient.invalidateQueries({ queryKey: PROJECTS_KEY })
       toast.error('Failed to create project')
     },
   })

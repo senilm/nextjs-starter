@@ -101,7 +101,10 @@ export function useChangeUserRole(): ReturnType<
         toast.error(result.error ?? 'Failed to update role')
       }
     },
-    onError: () => toast.error('Failed to update role'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to update role')
+    },
   })
 }
 
@@ -117,7 +120,10 @@ export function useSuspendUser(): ReturnType<typeof useMutation<ActionResult, Er
         toast.error(result.error ?? 'Failed to suspend user')
       }
     },
-    onError: () => toast.error('Failed to suspend user'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to suspend user')
+    },
   })
 }
 
@@ -133,7 +139,10 @@ export function useUnsuspendUser(): ReturnType<typeof useMutation<ActionResult, 
         toast.error(result.error ?? 'Failed to unsuspend user')
       }
     },
-    onError: () => toast.error('Failed to unsuspend user'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to unsuspend user')
+    },
   })
 }
 
@@ -149,7 +158,10 @@ export function useDeleteUser(): ReturnType<typeof useMutation<ActionResult, Err
         toast.error(result.error ?? 'Failed to delete user')
       }
     },
-    onError: () => toast.error('Failed to delete user'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to delete user')
+    },
   })
 }
 
@@ -165,7 +177,10 @@ export function useInviteUser(): ReturnType<typeof useMutation<ActionResult, Err
         toast.error(result.error ?? 'Failed to send invitation')
       }
     },
-    onError: () => toast.error('Failed to send invitation'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to send invitation')
+    },
   })
 }
 
@@ -188,7 +203,10 @@ export function useUpdatePlan(): ReturnType<typeof useMutation<ActionResult, Err
         toast.error(result.error ?? 'Failed to update plan')
       }
     },
-    onError: () => toast.error('Failed to update plan'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: PLANS_KEY })
+      toast.error('Failed to update plan')
+    },
   })
 }
 
@@ -222,6 +240,9 @@ export function useUpdateSystemSettings(): ReturnType<
         toast.error(result.error ?? 'Failed to update settings')
       }
     },
-    onError: () => toast.error('Failed to update settings'),
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: SETTINGS_KEY })
+      toast.error('Failed to update settings')
+    },
   })
 }

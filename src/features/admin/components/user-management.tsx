@@ -46,8 +46,8 @@ import {
   useDeleteUser,
 } from '@/features/admin/hooks'
 import { getUserColumns } from '@/features/admin/components/user-columns'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { UserDetailSheet } from '@/features/admin/components/user-detail-sheet'
-import { InviteUserDialog } from '@/features/admin/components/invite-user-dialog'
 import { getRoles } from '@/features/roles/actions'
 import type { UserFilters } from '@/features/admin/types'
 
@@ -64,9 +64,9 @@ export const UserManagement = (): React.ReactNode => {
   const { page, limit, setPage, setLimit, resetPage } = usePagination()
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
+  const { openDialog } = useDialogStore()
   const [detailUserId, setDetailUserId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-  const [inviteOpen, setInviteOpen] = useState(false)
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
   const [suspendUserId, setSuspendUserId] = useState<string | null>(null)
   const [unsuspendUserId, setUnsuspendUserId] = useState<string | null>(null)
@@ -153,7 +153,7 @@ export const UserManagement = (): React.ReactNode => {
           description="Manage user accounts, roles, and access."
           actions={
             canCreate ? (
-              <Button onClick={() => setInviteOpen(true)}>
+              <Button onClick={() => openDialog(DIALOG_KEY.INVITE_USER)}>
                 <UserPlus className="mr-2 size-4" />
                 Invite User
               </Button>
@@ -161,7 +161,6 @@ export const UserManagement = (): React.ReactNode => {
           }
         />
         <EmptyState icon={Users} title="No users found" description="No user accounts exist yet." />
-        <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
       </div>
     )
   }
@@ -173,7 +172,7 @@ export const UserManagement = (): React.ReactNode => {
         description="Manage user accounts, roles, and access."
         actions={
           canCreate ? (
-            <Button onClick={() => setInviteOpen(true)}>
+            <Button onClick={() => openDialog(DIALOG_KEY.INVITE_USER)}>
               <UserPlus className="mr-2 size-4" />
               Invite User
             </Button>
@@ -212,7 +211,6 @@ export const UserManagement = (): React.ReactNode => {
       />
 
       <UserDetailSheet userId={detailUserId} open={detailOpen} onOpenChange={setDetailOpen} />
-      <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
 
       <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>

@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { GlobalDialogs } from '@/components/shared/global-dialogs'
 
 import './globals.css'
 
@@ -41,6 +42,7 @@ export default function RootLayout({
           <QueryProvider>
             <TooltipProvider>
               {children}
+              <GlobalDialogs />
               <Toaster />
             </TooltipProvider>
           </QueryProvider>

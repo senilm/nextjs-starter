@@ -16,9 +16,9 @@ import { PageHeader } from '@/components/shared/page-header'
 import { TableSkeleton } from '@/components/shared/loading-skeleton'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingTransition } from '@/components/shared/loading-transition'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { usePermission } from '@/hooks/use-permission'
 import { useRoles } from '@/features/roles/hooks'
-import { RoleFormDialog } from '@/features/roles/components/role-form-dialog'
 import { DeleteRoleDialog } from '@/features/roles/components/delete-role-dialog'
 import type { RoleWithPermissions } from '@/features/roles/types'
 
@@ -27,19 +27,16 @@ export const RolesList = (): React.ReactNode => {
   const canEdit = usePermission('roles.edit')
   const canDelete = usePermission('roles.delete')
 
+  const { openDialog } = useDialogStore()
   const { data: roles, isLoading } = useRoles()
-  const [formOpen, setFormOpen] = useState(false)
-  const [editRole, setEditRole] = useState<RoleWithPermissions | null>(null)
   const [deleteRole, setDeleteRole] = useState<RoleWithPermissions | null>(null)
 
   const handleEdit = (role: RoleWithPermissions): void => {
-    setEditRole(role)
-    setFormOpen(true)
+    openDialog(DIALOG_KEY.EDIT_ROLE, role)
   }
 
   const handleCreate = (): void => {
-    setEditRole(null)
-    setFormOpen(true)
+    openDialog(DIALOG_KEY.CREATE_ROLE)
   }
 
   return (
@@ -109,7 +106,6 @@ export const RolesList = (): React.ReactNode => {
         )}
       </LoadingTransition>
 
-      <RoleFormDialog role={editRole} open={formOpen} onOpenChange={setFormOpen} />
       <DeleteRoleDialog role={deleteRole} open={!!deleteRole} onOpenChange={(open) => !open && setDeleteRole(null)} />
     </div>
   )

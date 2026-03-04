@@ -2,14 +2,13 @@
  * @file create-project-dialog.tsx
  * @module features/projects/components/create-project-dialog
  * Dialog for creating a new project with plan limit check.
+ * Supports both controlled (open/onOpenChange) and trigger mode.
  */
 
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,8 +32,12 @@ import {
 import { useCreateProject } from '@/features/projects/hooks'
 import { createProjectSchema, type CreateProjectInput } from '@/features/projects/validations'
 
-export const CreateProjectDialog = (): React.ReactNode => {
-  const [open, setOpen] = useState(false)
+interface CreateProjectDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export const CreateProjectDialog = ({ open, onOpenChange }: CreateProjectDialogProps): React.ReactNode => {
   const createProject = useCreateProject()
 
   const form = useForm<CreateProjectInput>({
@@ -47,18 +49,12 @@ export const CreateProjectDialog = (): React.ReactNode => {
     const result = await createProject.mutateAsync(data)
     if (result.success) {
       form.reset()
-      setOpen(false)
+      onOpenChange(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-1 size-4" />
-          New Project
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>
@@ -98,7 +94,7 @@ export const CreateProjectDialog = (): React.ReactNode => {
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" loading={createProject.isPending}>

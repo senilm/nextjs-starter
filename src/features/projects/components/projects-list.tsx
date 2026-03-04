@@ -7,8 +7,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { FolderKanban } from 'lucide-react'
+import { FolderKanban, Plus } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
@@ -16,10 +17,9 @@ import { PageHeader } from '@/components/shared/page-header'
 import { EmptyState } from '@/components/shared/empty-state'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { useProjects } from '@/features/projects/hooks'
 import { getProjectColumns } from '@/features/projects/components/project-columns'
-import { CreateProjectDialog } from '@/features/projects/components/create-project-dialog'
-import { EditProjectDialog } from '@/features/projects/components/edit-project-dialog'
 import { DeleteProjectDialog } from '@/features/projects/components/delete-project-dialog'
 import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/features/projects/types'
 
@@ -39,9 +39,9 @@ const FILTER_FIELDS: FilterField[] = [
 ]
 
 export const ProjectsList = (): React.ReactNode => {
+  const { openDialog } = useDialogStore()
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
-  const [editProject, setEditProject] = useState<Project | null>(null)
   const [deleteProject, setDeleteProject] = useState<Project | null>(null)
   const { page, limit, setPage, setLimit, resetPage } = usePagination()
 
@@ -60,7 +60,7 @@ export const ProjectsList = (): React.ReactNode => {
   const columns = useMemo(
     () =>
       getProjectColumns({
-        onEdit: (project) => setEditProject(project),
+        onEdit: (project) => openDialog(DIALOG_KEY.EDIT_PROJECT, project),
         onDelete: (project) => setDeleteProject(project),
       }),
     [],
@@ -89,13 +89,23 @@ export const ProjectsList = (): React.ReactNode => {
         <PageHeader
           title="Projects"
           description="Manage your projects and track their progress."
-          actions={<CreateProjectDialog />}
+          actions={
+            <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
+              <Plus className="mr-1 size-4" />
+              New Project
+            </Button>
+          }
         />
         <EmptyState
           icon={FolderKanban}
           title="No projects found"
           description="Create your first project to get started."
-          action={<CreateProjectDialog />}
+          action={
+            <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
+              <Plus className="mr-1 size-4" />
+              New Project
+            </Button>
+          }
         />
       </div>
     )
@@ -106,7 +116,12 @@ export const ProjectsList = (): React.ReactNode => {
       <PageHeader
         title="Projects"
         description="Manage your projects and track their progress."
-        actions={<CreateProjectDialog />}
+        actions={
+          <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
+            <Plus className="mr-1 size-4" />
+            New Project
+          </Button>
+        }
       />
 
       <DataTable
@@ -139,7 +154,6 @@ export const ProjectsList = (): React.ReactNode => {
         )}
       />
 
-      <EditProjectDialog project={editProject} open={!!editProject} onOpenChange={(open) => !open && setEditProject(null)} />
       <DeleteProjectDialog project={deleteProject} open={!!deleteProject} onOpenChange={(open) => !open && setDeleteProject(null)} />
     </div>
   )

@@ -55,12 +55,36 @@ interface StatsRowSkeletonProps {
   count?: number
 }
 
+const STATS_GRID_COLS: Record<number, string> = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+  5: 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
+}
+
 export const StatsRowSkeleton = ({ count = 4 }: StatsRowSkeletonProps): React.ReactNode => {
+  const colClass = STATS_GRID_COLS[count] ?? 'sm:grid-cols-2 lg:grid-cols-4'
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className={cn('grid gap-4', colClass)}>
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={`stat-${i}`} />
       ))}
+    </div>
+  )
+}
+
+/* ── Grid card (DataTable grid view) ───────────────────────────────── */
+
+export const GridCardSkeleton = (): React.ReactNode => {
+  return (
+    <div className="rounded-xl border p-4 shadow-sm space-y-3">
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-3 w-1/2" />
+      <div className="flex items-center gap-2 pt-2">
+        <Skeleton className="h-6 w-16 rounded-full" />
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
     </div>
   )
 }

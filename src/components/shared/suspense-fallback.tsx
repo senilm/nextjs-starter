@@ -6,7 +6,7 @@
 
 import { Suspense } from 'react'
 
-import { Spinner } from '@/components/shared/spinner'
+import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
 interface SuspenseFallbackProps {
   children: React.ReactNode
@@ -14,5 +14,5 @@ interface SuspenseFallbackProps {
 }
 
 export const SuspenseFallback = ({ children, className }: SuspenseFallbackProps): React.ReactNode => (
-  <Suspense fallback={<Spinner className={className} />}>{children}</Suspense>
+  <Suspense fallback={<LoadingSpinner className={className} />}>{children}</Suspense>
 )

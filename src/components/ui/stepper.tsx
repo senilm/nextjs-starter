@@ -124,7 +124,7 @@ const StepperHeader = ({ className, ...props }: React.ComponentProps<'nav'>): Re
                   >
                     <span
                       className={cn(
-                        'flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all duration-300',
+                        'flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors',
                         isCompleted &&
                           'border-primary bg-primary text-primary-foreground',
                         isActive &&
@@ -134,29 +134,7 @@ const StepperHeader = ({ className, ...props }: React.ComponentProps<'nav'>): Re
                           'border-muted-foreground/30 text-muted-foreground/50',
                       )}
                     >
-                      <AnimatePresence mode="wait">
-                        {isCompleted ? (
-                          <motion.span
-                            key="check"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            transition={{ duration: 0.15 }}
-                          >
-                            <Check className="size-4" />
-                          </motion.span>
-                        ) : (
-                          <motion.span
-                            key="number"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                            transition={{ duration: 0.15 }}
-                          >
-                            {index + 1}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
+                      {isCompleted ? <Check className="size-4" /> : index + 1}
                     </span>
 
                     <div className="flex flex-col min-w-0">
@@ -183,7 +161,7 @@ const StepperHeader = ({ className, ...props }: React.ComponentProps<'nav'>): Re
                   <li role="presentation" aria-hidden="true" className="flex-1 max-w-16 px-1">
                     <div
                       className={cn(
-                        'h-0.5 rounded-full transition-colors duration-300',
+                        'h-0.5 rounded-full transition-colors',
                         isCompleted ? 'bg-primary' : 'bg-border',
                       )}
                     />

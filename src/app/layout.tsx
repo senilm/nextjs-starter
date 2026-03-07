@@ -12,6 +12,7 @@ import { QueryProvider } from '@/components/providers/query-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { GlobalDialogs } from '@/components/shared/global-dialogs'
+import { cn } from '@/lib/utils'
 
 import './globals.css'
 
@@ -37,7 +38,7 @@ export default function RootLayout({
 }>): React.ReactNode {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={cn(geistSans.variable, geistMono.variable, 'antialiased')}>
         <ThemeProvider>
           <QueryProvider>
             <TooltipProvider>

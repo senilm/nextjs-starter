@@ -7,20 +7,20 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { FolderKanban, Plus } from 'lucide-react'
+import { FolderKanban } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
-import { PageHeader } from '@/components/shared/page-header'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { PageShell } from '@/components/shared/page-shell'
 import { EmptyState } from '@/components/shared/empty-state'
+import { CreateProjectButton } from '@/features/projects/components/create-project-button'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { useProjects } from '@/features/projects/hooks'
+import { useProjects, useDeleteProject } from '@/features/projects/hooks'
 import { getProjectColumns } from '@/features/projects/components/project-columns'
-import { DeleteProjectDialog } from '@/features/projects/components/delete-project-dialog'
 import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/features/projects/types'
 
 const STATUS_FILTER_OPTIONS = PROJECT_STATUSES.map((s) => ({
@@ -40,6 +40,7 @@ const FILTER_FIELDS: FilterField[] = [
 
 export const ProjectsList = (): React.ReactNode => {
   const { openDialog } = useDialogStore()
+  const deleteProjectMutation = useDeleteProject()
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [deleteProject, setDeleteProject] = useState<Project | null>(null)
@@ -82,79 +83,70 @@ export const ProjectsList = (): React.ReactNode => {
   }
 
   const hasActiveFilters = !!debouncedSearch || activeFilterCount > 0
+  const isEmpty = !isLoading && !data?.projects.length && !hasActiveFilters
 
-  if (!isLoading && !data?.projects.length && !hasActiveFilters) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Projects"
-          description="Manage your projects and track their progress."
-          actions={
-            <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
-              <Plus className="mr-1 size-4" />
-              New Project
-            </Button>
-          }
-        />
+  return (
+    <PageShell
+      title="Projects"
+      description="Manage your projects and track their progress."
+      actions={<CreateProjectButton />}
+    >
+      {isEmpty ? (
         <EmptyState
           icon={FolderKanban}
           title="No projects found"
           description="Create your first project to get started."
-          action={
-            <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
-              <Plus className="mr-1 size-4" />
-              New Project
-            </Button>
-          }
+          action={<CreateProjectButton />}
         />
-      </div>
-    )
-  }
+      ) : (
+        <DataTable
+          columns={columns}
+          data={data?.projects ?? []}
+          isLoading={isLoading}
+          hasActiveFilters={hasActiveFilters}
+          emptyTitle="No projects found"
+          emptyDescription="Create your first project to get started."
+          pagination={
+            data
+              ? { page: data.page, limit, total: data.total, totalPages: data.totalPages }
+              : undefined
+          }
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          toolbar={(columnCustomizer) => (
+            <DataTableToolbar
+              searchValue={search}
+              onSearchChange={handleSearchChange}
+              searchPlaceholder="Search projects..."
+              onRefresh={() => void refetch()}
+              isRefreshing={isRefetching}
+              columnCustomizer={columnCustomizer}
+            >
+              <DataTableFilter
+                fields={FILTER_FIELDS}
+                values={filterValues}
+                onChange={handleFilterChange}
+                onClear={handleFilterClear}
+                activeCount={activeFilterCount}
+              />
+            </DataTableToolbar>
+          )}
+        />
+      )}
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Projects"
-        description="Manage your projects and track their progress."
-        actions={
-          <Button size="sm" onClick={() => openDialog(DIALOG_KEY.CREATE_PROJECT)}>
-            <Plus className="mr-1 size-4" />
-            New Project
-          </Button>
-        }
+      <ConfirmDialog
+        open={!!deleteProject}
+        onOpenChange={(open) => !open && setDeleteProject(null)}
+        title="Delete project"
+        description={`Are you sure you want to delete "${deleteProject?.name}"? This action can be undone by an administrator.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => {
+          if (!deleteProject) return
+          void deleteProjectMutation.mutateAsync(deleteProject.id).then(() => setDeleteProject(null))
+        }}
+        isLoading={deleteProjectMutation.isPending}
       />
-
-      <DataTable
-        columns={columns}
-        data={data?.projects ?? []}
-        isLoading={isLoading}
-        hasActiveFilters={hasActiveFilters}
-        emptyTitle="No projects found"
-        emptyDescription="Create your first project to get started."
-        pagination={data ? { page: data.page, limit, total: data.total, totalPages: data.totalPages } : undefined}
-        onPageChange={setPage}
-        onLimitChange={setLimit}
-        toolbar={(columnCustomizer) => (
-          <DataTableToolbar
-            searchValue={search}
-            onSearchChange={handleSearchChange}
-            searchPlaceholder="Search projects..."
-            onRefresh={() => void refetch()}
-            isRefreshing={isRefetching}
-            columnCustomizer={columnCustomizer}
-          >
-            <DataTableFilter
-              fields={FILTER_FIELDS}
-              values={filterValues}
-              onChange={handleFilterChange}
-              onClear={handleFilterClear}
-              activeCount={activeFilterCount}
-            />
-          </DataTableToolbar>
-        )}
-      />
-
-      <DeleteProjectDialog project={deleteProject} open={!!deleteProject} onOpenChange={(open) => !open && setDeleteProject(null)} />
-    </div>
+    </PageShell>
   )
 }

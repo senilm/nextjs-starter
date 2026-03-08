@@ -15,13 +15,16 @@ import { DataTableFilter, type FilterField } from '@/components/data-table/data-
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { PageShell } from '@/components/shared/page-shell'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ViewToggle } from '@/components/shared/view-toggle'
 import { CreateProjectButton } from '@/features/projects/components/create-project-button'
+import { ProjectCard } from '@/features/projects/components/project-card'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { useProjects, useDeleteProject } from '@/features/projects/hooks'
 import { getProjectColumns } from '@/features/projects/components/project-columns'
 import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/features/projects/types'
+import { VIEW_MODE, type ViewMode } from '@/types/data-table'
 
 const STATUS_FILTER_OPTIONS = PROJECT_STATUSES.map((s) => ({
   label: s.charAt(0).toUpperCase() + s.slice(1),
@@ -41,6 +44,7 @@ const FILTER_FIELDS: FilterField[] = [
 export const ProjectsList = (): React.ReactNode => {
   const { openDialog } = useDialogStore()
   const deleteProjectMutation = useDeleteProject()
+  const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.LIST)
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [deleteProject, setDeleteProject] = useState<Project | null>(null)
@@ -106,6 +110,16 @@ export const ProjectsList = (): React.ReactNode => {
           hasActiveFilters={hasActiveFilters}
           emptyTitle="No projects found"
           emptyDescription="Create your first project to get started."
+          viewMode={viewMode}
+          renderCard={(project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              index={data?.projects.indexOf(project) ?? 0}
+              onEdit={(p) => openDialog(DIALOG_KEY.EDIT_PROJECT, p)}
+              onDelete={(p) => setDeleteProject(p)}
+            />
+          )}
           pagination={
             data
               ? { page: data.page, limit, total: data.total, totalPages: data.totalPages }
@@ -122,6 +136,7 @@ export const ProjectsList = (): React.ReactNode => {
               isRefreshing={isRefetching}
               columnCustomizer={columnCustomizer}
             >
+              <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
               <DataTableFilter
                 fields={FILTER_FIELDS}
                 values={filterValues}

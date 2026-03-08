@@ -11,7 +11,6 @@ import { lazy, Suspense } from 'react'
 import { PageHeader } from '@/components/shared/page-header'
 import { SubscriptionDetails } from '@/features/billing/components/subscription-details'
 import { PlanCard } from '@/features/billing/components/plan-card'
-import { UsageBars } from '@/features/billing/components/usage-bars'
 import { PaymentHistory } from '@/features/billing/components/payment-history'
 import { useCheckout } from '@/features/billing/hooks/use-checkout'
 import { usePaymentProvider } from '@/features/billing/hooks/use-payment-provider'
@@ -32,7 +31,6 @@ export const BillingPage = (): React.ReactNode => {
       <div className="grid gap-6">
         <SubscriptionDetails />
         <PlanCard />
-        <UsageBars />
         <PaymentHistory />
       </div>
       {provider === 'razorpay' && razorpayConfig && (

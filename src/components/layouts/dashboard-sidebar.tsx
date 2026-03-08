@@ -1,15 +1,14 @@
 /**
  * @file dashboard-sidebar.tsx
  * @module components/layouts/dashboard-sidebar
- * Main sidebar with navigation, plan badge, theme toggle, and user menu.
+ * Main sidebar with navigation and user menu.
  */
 
 'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Zap } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Zap } from 'lucide-react'
 
 import {
   Sidebar,
@@ -22,22 +21,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from '@/components/ui/sidebar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { UserMenu } from '@/components/layouts/user-menu'
 import { usePermission } from '@/hooks/use-permission'
 import { DASHBOARD_NAV, ADMIN_NAV, type NavItem } from '@/lib/navigation'
 import { paths } from '@/lib/paths'
 import { APP_NAME } from '@/lib/config'
-import { useSubscription } from '@/features/billing/hooks'
 
 export const DashboardSidebar = (): React.ReactNode => {
   const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
   const hasAdminAccess = usePermission('admin.access')
-  const { data: subscription } = useSubscription()
 
   const isActive = (href: string): boolean => {
     if (href === paths.dashboard.home()) return pathname === paths.dashboard.home()
@@ -94,21 +87,6 @@ export const DashboardSidebar = (): React.ReactNode => {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarSeparator />
-        <div className="flex items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
-          <Badge variant="secondary" className="group-data-[collapsible=icon]:hidden">
-            {subscription?.planName ?? 'Free'} Plan
-          </Badge>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            aria-label="Toggle theme"
-          >
-            <Sun className="size-3.5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute size-3.5 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-          </Button>
-        </div>
         <UserMenu />
       </SidebarFooter>
     </Sidebar>

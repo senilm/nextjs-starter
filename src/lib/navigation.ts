@@ -42,6 +42,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
     label: 'Account',
     items: [
       { title: 'Settings', href: paths.dashboard.settings(), icon: Settings },
+      { title: 'Usage', href: paths.dashboard.usage(), icon: BarChart3 },
       { title: 'Billing', href: paths.dashboard.billing(), icon: CreditCard },
     ],
   },

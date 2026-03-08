@@ -29,6 +29,7 @@ export const paths = {
       detail: (id: string) => `/dashboard/projects/${id}`,
     },
     settings: () => '/dashboard/settings',
+    usage: () => '/dashboard/usage',
     billing: () => '/dashboard/billing',
   },
 

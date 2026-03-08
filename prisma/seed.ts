@@ -7,6 +7,7 @@
 import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { hashPassword } from 'better-auth/crypto'
 import { Module, Action, perm } from '../src/lib/constants'
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
@@ -133,7 +134,7 @@ async function main(): Promise<void> {
     })
   }
 
-  /* 4. Admin user */
+  /* 4. Admin user + credential account */
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@shipstation.dev' },
     update: { roleId: superAdminRole.id },
@@ -145,7 +146,22 @@ async function main(): Promise<void> {
       isActive: true,
     },
   })
-  console.log('✓ 1 admin user created (admin@shipstation.dev)')
+
+  const hashedPassword = await hashPassword('Admin@123456')
+  const existingAccount = await prisma.account.findFirst({
+    where: { userId: adminUser.id, providerId: 'credential' },
+  })
+  if (!existingAccount) {
+    await prisma.account.create({
+      data: {
+        userId: adminUser.id,
+        accountId: adminUser.id,
+        providerId: 'credential',
+        password: hashedPassword,
+      },
+    })
+  }
+  console.log('✓ 1 admin user created (admin@shipstation.dev / Admin@123456)')
 
   /* 5. Plans */
   for (const plan of PLANS) {

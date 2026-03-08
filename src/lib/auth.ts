@@ -105,7 +105,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    nextCookies(),
     twoFactor({ issuer: process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation' }),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
@@ -143,6 +142,7 @@ export const auth = betterAuth({
         session,
       }
     }),
+    nextCookies(),
   ],
 })
 

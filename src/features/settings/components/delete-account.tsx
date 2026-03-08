@@ -1,7 +1,7 @@
 /**
  * @file delete-account.tsx
  * @module features/settings/components/delete-account
- * Danger zone — account deletion with confirmation dialog.
+ * Danger zone — account deletion with password confirmation dialog.
  */
 
 'use client'
@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   AlertDialog,
@@ -44,11 +45,11 @@ export const DeleteAccount = (): React.ReactNode => {
 
   const form = useForm<DeleteAccountInput>({
     resolver: zodResolver(deleteAccountSchema),
-    defaultValues: { confirmation: '' as 'DELETE' },
+    defaultValues: { confirmation: '' as 'DELETE', password: '' },
   })
 
-  const onSubmit = async (): Promise<void> => {
-    const result = await deleteAccount()
+  const onSubmit = async (values: DeleteAccountInput): Promise<void> => {
+    const result = await deleteAccount(values.password)
     if (result.success) {
       toast.success('Account deleted')
       router.push(paths.auth.signIn())
@@ -62,7 +63,7 @@ export const DeleteAccount = (): React.ReactNode => {
       <CardHeader>
         <CardTitle className="text-destructive">Danger Zone</CardTitle>
         <CardDescription>
-          Permanently delete your account and all associated data. This action cannot be undone.
+          Delete your account and deactivate access. An administrator may be able to restore your account if needed.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,16 +71,29 @@ export const DeleteAccount = (): React.ReactNode => {
           <AlertDialogTrigger asChild>
             <Button variant="destructive">Delete account</Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete your account, all projects, and remove your data. Type{' '}
+                This will deactivate your account and you will lose access to all projects and data. Type{' '}
                 <strong>DELETE</strong> to confirm.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="Enter your password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="confirmation"
@@ -93,7 +107,7 @@ export const DeleteAccount = (): React.ReactNode => {
                     </FormItem>
                   )}
                 />
-                <AlertDialogFooter className="mt-4">
+                <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     type="submit"

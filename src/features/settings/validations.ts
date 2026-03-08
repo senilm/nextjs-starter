@@ -33,6 +33,12 @@ export const changePasswordSchema = z
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
 
+export const twoFactorPasswordSchema = z.object({
+  password: z.string().min(1, 'Password is required'),
+})
+
+export type TwoFactorPasswordInput = z.infer<typeof twoFactorPasswordSchema>
+
 export const twoFactorVerifySchema = z.object({
   code: z.string().length(6, 'Code must be 6 digits'),
 })
@@ -41,6 +47,7 @@ export type TwoFactorVerifyInput = z.infer<typeof twoFactorVerifySchema>
 
 export const deleteAccountSchema = z.object({
   confirmation: z.literal('DELETE', { message: 'Type DELETE to confirm' }),
+  password: z.string().min(1, 'Password is required'),
 })
 
 export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>

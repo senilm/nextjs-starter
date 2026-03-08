@@ -20,6 +20,7 @@ interface ActionResult {
 
 interface SessionInfo {
   id: string
+  token: string
   ipAddress: string | null
   userAgent: string | null
   createdAt: Date
@@ -43,70 +44,71 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
 }
 
 export async function getActiveSessions(): Promise<SessionInfo[]> {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const reqHeaders = await headers()
+  const session = await auth.api.getSession({ headers: reqHeaders })
   if (!session) throw new Error('Unauthorized')
 
-  const sessions = await prisma.session.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      ipAddress: true,
-      userAgent: true,
-      createdAt: true,
-      token: true,
-    },
-  })
+  const sessions = await auth.api.listSessions({ headers: reqHeaders })
 
-  return sessions.map((s) => ({
+  return (sessions ?? []).map((s) => ({
     id: s.id,
-    ipAddress: s.ipAddress,
-    userAgent: s.userAgent,
-    createdAt: s.createdAt,
+    token: s.token,
+    ipAddress: s.ipAddress ?? null,
+    userAgent: s.userAgent ?? null,
+    createdAt: s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt),
     isCurrent: s.token === session.session.token,
   }))
 }
 
-export async function revokeSession(sessionId: string): Promise<ActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() })
+export async function revokeSession(token: string): Promise<ActionResult> {
+  const reqHeaders = await headers()
+  const session = await auth.api.getSession({ headers: reqHeaders })
   if (!session) return { success: false, error: 'Unauthorized' }
 
-  const targetSession = await prisma.session.findFirst({
-    where: { id: sessionId, userId: session.user.id },
-  })
-  if (!targetSession) return { success: false, error: 'Session not found' }
-
-  await prisma.session.delete({ where: { id: sessionId } })
+  await auth.api.revokeSession({ headers: reqHeaders, body: { token } })
 
   revalidatePath('/dashboard/settings')
   return { success: true }
 }
 
 export async function revokeAllOtherSessions(): Promise<ActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const reqHeaders = await headers()
+  const session = await auth.api.getSession({ headers: reqHeaders })
   if (!session) return { success: false, error: 'Unauthorized' }
 
-  await prisma.session.deleteMany({
-    where: {
-      userId: session.user.id,
-      token: { not: session.session.token },
-    },
-  })
+  await auth.api.revokeOtherSessions({ headers: reqHeaders })
 
   revalidatePath('/dashboard/settings')
   return { success: true }
 }
 
-export async function deleteAccount(): Promise<ActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() })
+export async function deleteAccount(password: string): Promise<ActionResult> {
+  const reqHeaders = await headers()
+  const session = await auth.api.getSession({ headers: reqHeaders })
   if (!session) return { success: false, error: 'Unauthorized' }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { email: true },
+  })
+  if (!user) return { success: false, error: 'User not found' }
+
+  const verification = await auth.api.signInEmail({
+    body: { email: user.email, password },
+    asResponse: true,
+  })
+
+  if (!verification.ok) {
+    return { success: false, error: 'Invalid password' }
+  }
 
   await prisma.user.update({
     where: { id: session.user.id },
     data: { deletedAt: new Date(), isActive: false },
   })
 
-  await prisma.session.deleteMany({ where: { userId: session.user.id } })
+  await auth.api.revokeOtherSessions({ headers: reqHeaders })
+  await auth.api.revokeSession({ headers: reqHeaders, body: { token: session.session.token } })
 
   return { success: true }
 }

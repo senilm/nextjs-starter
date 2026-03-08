@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { Monitor, Smartphone, Globe } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BlocksSkeleton } from '@/components/shared/loading-skeleton'
 import { LoadingTransition } from '@/components/shared/loading-transition'
@@ -44,7 +44,7 @@ export const ActiveSessions = (): React.ReactNode => {
   })
 
   const revokeMutation = useMutation({
-    mutationFn: (sessionId: string) => revokeSession(sessionId),
+    mutationFn: (token: string) => revokeSession(token),
     onSuccess: (result) => {
       if (result.success) {
         toast.success('Session revoked')
@@ -71,20 +71,20 @@ export const ActiveSessions = (): React.ReactNode => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
-          <CardTitle>Active Sessions</CardTitle>
-          <CardDescription>Manage your active sessions across devices.</CardDescription>
-        </div>
+      <CardHeader>
+        <CardTitle>Active Sessions</CardTitle>
+        <CardDescription>Manage your active sessions across devices.</CardDescription>
         {otherSessionCount > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => revokeAllMutation.mutate()}
-            loading={revokeAllMutation.isPending}
-          >
-            Revoke all others
-          </Button>
+          <CardAction>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => revokeAllMutation.mutate()}
+              loading={revokeAllMutation.isPending}
+            >
+              Revoke all others
+            </Button>
+          </CardAction>
         )}
       </CardHeader>
       <CardContent>
@@ -116,7 +116,7 @@ export const ActiveSessions = (): React.ReactNode => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => revokeMutation.mutate(s.id)}
+                    onClick={() => revokeMutation.mutate(s.token)}
                     loading={revokeMutation.isPending}
                   >
                     Revoke

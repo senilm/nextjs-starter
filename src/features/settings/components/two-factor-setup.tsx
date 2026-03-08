@@ -10,10 +10,12 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { QRCodeSVG } from 'qrcode.react'
 import { Shield, ShieldCheck, Copy } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
@@ -25,28 +27,40 @@ import {
 } from '@/components/ui/form'
 import { useSession } from '@/lib/auth-client'
 import { authClient } from '@/lib/auth-client'
-import { twoFactorVerifySchema, type TwoFactorVerifyInput } from '@/features/settings/validations'
+import {
+  twoFactorPasswordSchema,
+  twoFactorVerifySchema,
+  type TwoFactorPasswordInput,
+  type TwoFactorVerifyInput,
+} from '@/features/settings/validations'
 
-type SetupStep = 'idle' | 'qr' | 'backup'
+type SetupStep = 'idle' | 'password' | 'qr' | 'backup'
 
 export const TwoFactorSetup = (): React.ReactNode => {
   const { data: session } = useSession()
   const [step, setStep] = useState<SetupStep>('idle')
   const [totpUri, setTotpUri] = useState('')
   const [backupCodes, setBackupCodes] = useState<string[]>([])
-  const [isPending, setIsPending] = useState(false)
 
   const isEnabled = (session?.user as { twoFactorEnabled?: boolean } | undefined)?.twoFactorEnabled ?? false
 
-  const form = useForm<TwoFactorVerifyInput>({
+  const passwordForm = useForm<TwoFactorPasswordInput>({
+    resolver: zodResolver(twoFactorPasswordSchema),
+    defaultValues: { password: '' },
+  })
+
+  const disablePasswordForm = useForm<TwoFactorPasswordInput>({
+    resolver: zodResolver(twoFactorPasswordSchema),
+    defaultValues: { password: '' },
+  })
+
+  const verifyForm = useForm<TwoFactorVerifyInput>({
     resolver: zodResolver(twoFactorVerifySchema),
     defaultValues: { code: '' },
   })
 
-  const handleEnable = async (): Promise<void> => {
-    setIsPending(true)
-    const { data, error } = await authClient.twoFactor.enable({ password: '' })
-    setIsPending(false)
+  const handleEnableWithPassword = async (values: TwoFactorPasswordInput): Promise<void> => {
+    const { data, error } = await authClient.twoFactor.enable({ password: values.password })
 
     if (error) {
       toast.error(error.message ?? 'Failed to start 2FA setup')
@@ -72,10 +86,8 @@ export const TwoFactorSetup = (): React.ReactNode => {
     setStep('backup')
   }
 
-  const handleDisable = async (): Promise<void> => {
-    setIsPending(true)
-    const { error } = await authClient.twoFactor.disable({ password: '' })
-    setIsPending(false)
+  const handleDisable = async (values: TwoFactorPasswordInput): Promise<void> => {
+    const { error } = await authClient.twoFactor.disable({ password: values.password })
 
     if (error) {
       toast.error(error.message ?? 'Failed to disable 2FA')
@@ -83,6 +95,7 @@ export const TwoFactorSetup = (): React.ReactNode => {
     }
 
     toast.success('Two-factor authentication disabled')
+    disablePasswordForm.reset()
     setStep('idle')
     setTotpUri('')
     setBackupCodes([])
@@ -108,15 +121,76 @@ export const TwoFactorSetup = (): React.ReactNode => {
       </CardHeader>
       <CardContent>
         {step === 'idle' && !isEnabled && (
-          <Button onClick={handleEnable} loading={isPending}>
+          <Button onClick={() => setStep('password')}>
             Enable 2FA
           </Button>
         )}
 
         {step === 'idle' && isEnabled && (
-          <Button variant="destructive" onClick={handleDisable} loading={isPending}>
-            Disable 2FA
-          </Button>
+          <Form {...disablePasswordForm}>
+            <form onSubmit={disablePasswordForm.handleSubmit(handleDisable)} className="space-y-4">
+              <FormField
+                control={disablePasswordForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm your password to disable 2FA</FormLabel>
+                    <FormControl>
+                      <PasswordInput placeholder="Enter your password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                variant="destructive"
+                loading={disablePasswordForm.formState.isSubmitting}
+              >
+                Disable 2FA
+              </Button>
+            </form>
+          </Form>
+        )}
+
+        {step === 'password' && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Enter your password to begin 2FA setup.
+            </p>
+            <Form {...passwordForm}>
+              <form onSubmit={passwordForm.handleSubmit(handleEnableWithPassword)} className="space-y-4">
+                <FormField
+                  control={passwordForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <PasswordInput placeholder="Enter your password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" loading={passwordForm.formState.isSubmitting}>
+                    Continue
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      passwordForm.reset()
+                      setStep('idle')
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         )}
 
         {step === 'qr' && (
@@ -125,18 +199,12 @@ export const TwoFactorSetup = (): React.ReactNode => {
               Scan this QR code with your authenticator app, then enter the verification code below.
             </p>
             <div className="flex justify-center rounded-lg border bg-white p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpUri)}`}
-                alt="2FA QR Code"
-                width={200}
-                height={200}
-              />
+              <QRCodeSVG value={totpUri} size={200} />
             </div>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleVerify)} className="space-y-4">
+            <Form {...verifyForm}>
+              <form onSubmit={verifyForm.handleSubmit(handleVerify)} className="space-y-4">
                 <FormField
-                  control={form.control}
+                  control={verifyForm.control}
                   name="code"
                   render={({ field }) => (
                     <FormItem>
@@ -148,7 +216,7 @@ export const TwoFactorSetup = (): React.ReactNode => {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" loading={form.formState.isSubmitting}>
+                <Button type="submit" loading={verifyForm.formState.isSubmitting}>
                   Verify & Enable
                 </Button>
               </form>

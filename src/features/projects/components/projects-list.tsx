@@ -156,9 +156,10 @@ export const ProjectsList = (): React.ReactNode => {
         description={`Are you sure you want to delete "${deleteProject?.name}"? This action can be undone by an administrator.`}
         confirmLabel="Delete"
         variant="destructive"
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!deleteProject) return
-          void deleteProjectMutation.mutateAsync(deleteProject.id).then(() => setDeleteProject(null))
+          await deleteProjectMutation.mutateAsync(deleteProject.id)
+          setDeleteProject(null)
         }}
         isLoading={deleteProjectMutation.isPending}
       />

@@ -11,16 +11,6 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -28,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import type { ActionResult } from '@/features/admin/types'
 
 interface RoleOption {
@@ -70,80 +61,64 @@ export const UserActionDialogs = ({
   changeRoleMutation,
   roles,
 }: UserActionDialogsProps): React.ReactNode => {
+  const handleChangeRole = async (): Promise<void> => {
+    if (!changeRoleUserId || !selectedRoleId) return
+    const result = await changeRoleMutation.mutateAsync({ userId: changeRoleUserId, roleId: selectedRoleId })
+    if (result.success) {
+      setChangeRoleUserId(null)
+      setSelectedRoleId('')
+    }
+  }
+
   return (
     <>
-      <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will soft-delete the user and revoke all access. This action cannot be easily undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (deleteUserId) {
-                  deleteMutation.mutate(deleteUserId)
-                  setDeleteUserId(null)
-                }
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!deleteUserId}
+        onOpenChange={(open) => !open && setDeleteUserId(null)}
+        title="Delete User"
+        description="This will soft-delete the user and revoke all access. This action cannot be easily undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!deleteUserId) return
+          const result = await deleteMutation.mutateAsync(deleteUserId)
+          if (result.success) setDeleteUserId(null)
+        }}
+      />
 
-      <AlertDialog open={!!suspendUserId} onOpenChange={(open) => !open && setSuspendUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Suspend User</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will prevent the user from signing in and revoke all active sessions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (suspendUserId) {
-                  suspendMutation.mutate(suspendUserId)
-                  setSuspendUserId(null)
-                }
-              }}
-            >
-              Suspend
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!suspendUserId}
+        onOpenChange={(open) => !open && setSuspendUserId(null)}
+        title="Suspend User"
+        description="This will prevent the user from signing in and revoke all active sessions."
+        confirmLabel="Suspend"
+        isLoading={suspendMutation.isPending}
+        onConfirm={async () => {
+          if (!suspendUserId) return
+          const result = await suspendMutation.mutateAsync(suspendUserId)
+          if (result.success) setSuspendUserId(null)
+        }}
+      />
 
-      <AlertDialog open={!!unsuspendUserId} onOpenChange={(open) => !open && setUnsuspendUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unsuspend User</AlertDialogTitle>
-            <AlertDialogDescription>This will restore the user&apos;s access to the platform.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (unsuspendUserId) {
-                  unsuspendMutation.mutate(unsuspendUserId)
-                  setUnsuspendUserId(null)
-                }
-              }}
-            >
-              Unsuspend
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!unsuspendUserId}
+        onOpenChange={(open) => !open && setUnsuspendUserId(null)}
+        title="Unsuspend User"
+        description="This will restore the user's access to the platform."
+        confirmLabel="Unsuspend"
+        isLoading={unsuspendMutation.isPending}
+        onConfirm={async () => {
+          if (!unsuspendUserId) return
+          const result = await unsuspendMutation.mutateAsync(unsuspendUserId)
+          if (result.success) setUnsuspendUserId(null)
+        }}
+      />
 
-      <Dialog open={!!changeRoleUserId} onOpenChange={(open) => !open && setChangeRoleUserId(null)}>
+      <Dialog
+        open={!!changeRoleUserId}
+        onOpenChange={(open) => !open && !changeRoleMutation.isPending && setChangeRoleUserId(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Change Role</DialogTitle>
@@ -162,19 +137,13 @@ export const UserActionDialogs = ({
             </SelectContent>
           </Select>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setChangeRoleUserId(null)}>
+            <Button variant="outline" disabled={changeRoleMutation.isPending} onClick={() => setChangeRoleUserId(null)}>
               Cancel
             </Button>
             <Button
               disabled={!selectedRoleId}
               loading={changeRoleMutation.isPending}
-              onClick={() => {
-                if (changeRoleUserId && selectedRoleId) {
-                  changeRoleMutation.mutate({ userId: changeRoleUserId, roleId: selectedRoleId })
-                  setChangeRoleUserId(null)
-                  setSelectedRoleId('')
-                }
-              }}
+              onClick={() => void handleChangeRole()}
             >
               Save
             </Button>

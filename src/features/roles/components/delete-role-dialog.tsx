@@ -8,7 +8,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -16,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { useDeleteRole } from '@/features/roles/hooks'
 import type { RoleWithPermissions } from '@/features/roles/types'
 
@@ -35,15 +35,14 @@ export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogP
       ? `This role has ${role?.userCount} assigned user(s). Reassign them before deleting.`
       : null
 
-  const handleDelete = (): void => {
-    if (role && !isBlocked) {
-      deleteMutation.mutate(role.id)
-      onOpenChange(false)
-    }
+  const handleDelete = async (): Promise<void> => {
+    if (!role || isBlocked) return
+    const result = await deleteMutation.mutateAsync(role.id)
+    if (result.success) onOpenChange(false)
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={(o) => !deleteMutation.isPending && onOpenChange(o)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Role</AlertDialogTitle>
@@ -54,14 +53,15 @@ export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogP
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
           {!isBlocked && (
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleDelete}
+            <Button
+              variant="destructive"
+              loading={deleteMutation.isPending}
+              onClick={() => void handleDelete()}
             >
               Delete
-            </AlertDialogAction>
+            </Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -8,7 +8,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -42,7 +41,7 @@ export const ConfirmDialog = ({
   isLoading = false,
 }: ConfirmDialogProps): React.ReactNode => {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={(o) => !isLoading && onOpenChange(o)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -50,16 +49,14 @@ export const ConfirmDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button
-              variant={variant}
-              onClick={onConfirm}
-              loading={isLoading}
-              disabled={isLoading}
-            >
-              {confirmLabel}
-            </Button>
-          </AlertDialogAction>
+          <Button
+            variant={variant}
+            onClick={onConfirm}
+            loading={isLoading}
+            disabled={isLoading}
+          >
+            {confirmLabel}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

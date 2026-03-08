@@ -21,8 +21,6 @@ export enum Module {
   Roles = 'roles',
   Plans = 'plans',
   Settings = 'settings',
-  Projects = 'projects',
-  Billing = 'billing',
 }
 
 export enum Action {
@@ -31,7 +29,6 @@ export enum Action {
   Create = 'create',
   Edit = 'edit',
   Delete = 'delete',
-  Manage = 'manage',
 }
 
 /** Type-safe permission key builder */
@@ -42,7 +39,7 @@ export function perm(module: Module, action: Action): string {
 
 Use these enums everywhere — server actions, hooks, middleware, seed script, admin UI. Never use raw permission strings like `'users.view'`. Always use `perm(Module.Users, Action.View)`.
 
-### 18 Default Permissions (Seeded)
+### 13 Default Permissions (Seeded)
 
 ```
 admin.access         — Can access the admin panel
@@ -58,12 +55,9 @@ plans.view           — Can view subscription plans
 plans.edit           — Can edit plan details
 settings.view        — Can view system settings
 settings.edit        — Can modify system settings
-projects.view        — Can view own projects
-projects.create      — Can create projects
-projects.edit        — Can edit own projects
-projects.delete      — Can delete own projects
-billing.manage       — Can manage own subscription and billing
 ```
+
+Note: Client-facing features (projects, billing) are gated by plan limits, not permissions. Permissions are strictly for admin panel access control.
 
 ### Extending
 
@@ -116,16 +110,15 @@ The `User` model (managed by Better Auth) gets a `roleId` FK pointing to `Role`.
 
 ## Default System Roles
 
-| Role | isSystem | isDefault | Permissions |
-|---|---|---|---|
-| Super Admin | true | false | All 18 permissions |
-| User | true | true (auto-assigned on signup) | projects.view, projects.create, projects.edit, projects.delete, billing.manage |
+| Role | isSystem | Permissions |
+|---|---|---|
+| Super Admin | true | All 13 permissions |
 
 **Rules:**
 - `isSystem = true` → cannot be deleted
 - Super Admin → permissions cannot be modified
-- User → permissions CAN be modified by admin, but role itself cannot be deleted
-- Only ONE role can have `isDefault = true` at any time
+- Normal users have no role assigned — project access is gated by plan limits, not permissions
+- Admins assign roles only when granting admin panel access
 
 ---
 
@@ -261,13 +254,10 @@ Users       │  ☐   │   ☐    │  ☐   │   ☐    │  —
 Roles       │  ☐   │   ☐    │  ☐   │   ☐    │  —
 Plans       │  ☐   │   —    │  ☐   │   —    │  —
 Settings    │  ☐   │   —    │  ☐   │   —    │  —
-Projects    │  ☐   │   ☐    │  ☐   │   ☐    │  —
-Billing     │  —   │   —    │  —   │   —    │ manage
 ```
 
 Edit restrictions:
 - Super Admin: all checkboxes checked + disabled (immutable)
-- User role: checkboxes enabled, name field locked
 - Custom roles: fully editable
 
 ### Delete Role

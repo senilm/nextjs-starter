@@ -247,25 +247,19 @@ Every permission follows the format: module.action. Examples:
 | **plans.edit**      | Can edit plan details                   | Plans      |
 | **settings.view**   | Can view system settings                | Settings   |
 | **settings.edit**   | Can modify system settings              | Settings   |
-| **projects.view**   | Can view own projects                   | Projects   |
-| **projects.create** | Can create projects                     | Projects   |
-| **projects.edit**   | Can edit own projects                   | Projects   |
-| **projects.delete** | Can delete own projects                 | Projects   |
-| **billing.manage**  | Can manage own subscription and billing | Billing    |
 
 The buyer extends this list by adding rows to the permissions table. No code changes needed for new permissions — just add the permission, assign it to roles, and check it in middleware or server actions.
 
 3.3 Default System Roles
 
-Two immutable system roles are seeded on first setup:
+One immutable system role is seeded on first setup:
 
-|                 |              |                                |                                                                                                       |
-|-----------------|--------------|--------------------------------|-------------------------------------------------------------------------------------------------------|
-| **Role**        | **isSystem** | **isDefault**                  | **Permissions**                                                                                       |
-| **Super Admin** | true         | false                          | All permissions. Full system access. Cannot be deleted or have permissions removed.                   |
-| **User**        | true         | true (auto-assigned on signup) | projects.view, projects.create, projects.edit, projects.delete, billing.manage. Basic product access. |
+|                 |              |                                                                                  |
+|-----------------|--------------|----------------------------------------------------------------------------------|
+| **Role**        | **isSystem** | **Permissions**                                                                  |
+| **Super Admin** | true         | All permissions. Full system access. Cannot be deleted or have permissions removed. |
 
-System roles (isSystem = true) cannot be deleted. The Super Admin role’s permissions cannot be modified. The User role’s permissions can be modified by the admin (e.g., remove projects.delete if the buyer wants to restrict that), but the role itself cannot be deleted since it’s the default assignment for new signups.
+System roles (isSystem = true) cannot be deleted. The Super Admin role’s permissions cannot be modified. Normal users have no role assigned — project access is gated by plan limits, not permissions. Admins assign roles only when granting admin panel access.
 
 3.4 Custom Roles (Buyer-Created)
 
@@ -307,10 +301,10 @@ Users table (defined in Module 2) references roles via roleId (FK). One user = o
 - Roles list: table showing role name, description, isSystem badge, number of users assigned, number of permissions.
 
 
-- Create role: form with name, description, and a permissions matrix. The matrix groups permissions by module (Users, Roles, Plans, Settings, Projects, Billing) with checkboxes for each action.
+- Create role: form with name, description, and a permissions matrix. The matrix groups permissions by module (Admin, Users, Roles, Plans, Settings) with checkboxes for each action.
 
 
-- Edit role: same form pre-filled. System roles show a lock icon and restricted editing (Super Admin is fully locked, User role allows permission changes but not deletion).
+- Edit role: same form pre-filled. System roles show a lock icon and restricted editing (Super Admin is fully locked).
 
 
 - Delete role: confirmation dialog. Cannot delete system roles. Cannot delete a role that has users assigned — admin must reassign users first. Shows count of affected users.
@@ -401,7 +395,7 @@ Module 5: User Dashboard
 
 5.1 Layout
 
-- Responsive sidebar layout (collapsible on mobile). Sidebar contains: nav links, plan badge, user avatar dropdown, dark/light mode toggle.
+- Responsive sidebar layout (collapsible on mobile). Sidebar contains: nav links and user avatar dropdown. Top bar contains: breadcrumbs, dark/light mode toggle, and global search.
 
 
 - Sidebar dynamically shows/hides the Admin link based on admin.access permission.
@@ -416,8 +410,9 @@ Module 5: User Dashboard
 | **Page**                | **Content**                                                                                                                                            |
 | **/dashboard**          | Overview: welcome message, stats cards (total projects, usage this month, plan status, days until renewal), quick-action grid.                         |
 | **/dashboard/settings** | Account settings: profile info, change password, 2FA setup, active sessions, danger zone (delete account).                                             |
-| **/dashboard/billing**  | Current plan card, usage vs. limits progress bars, upgrade/downgrade buttons, Stripe Portal link, invoice history. Requires billing.manage permission. |
-| **/dashboard/projects** | CRUD example. Requires projects.view / projects.create / projects.edit / projects.delete permissions respectively.                                     |
+| **/dashboard/usage**    | Resource usage vs. plan limits progress bars, upgrade CTA for free plan users.                                                                         |
+| **/dashboard/billing**  | Current plan card, upgrade/downgrade buttons, Stripe Portal link, invoice history.                                                                     |
+| **/dashboard/projects** | CRUD example. Access gated by plan limits (not permissions).                                                                                           |
 
 5.3 CRUD Example (Projects)
 
@@ -427,11 +422,11 @@ Project model: id, userId (FK), name, description, status (active/paused/archive
 
 List view: paginated table (10/page), sort by name/date/status, search by name, status filter.
 
-Create: modal dialog with Zod-validated form. Server action creates project. Checks projects.create permission and plan limit. Optimistic UI via TanStack Query.
+Create: modal dialog with Zod-validated form. Server action creates project. Checks plan limit before creation. Optimistic UI via TanStack Query.
 
-Edit: same modal pre-filled. Server action checks projects.edit permission.
+Edit: same modal pre-filled. Server action validates ownership.
 
-Delete: confirmation dialog. Server action checks projects.delete permission. Optimistic removal.
+Delete: confirmation dialog. Server action validates ownership. Optimistic removal.
 
 Plan limit enforcement: checks project count against plan limit before creation. Upgrade prompt if exceeded.
 

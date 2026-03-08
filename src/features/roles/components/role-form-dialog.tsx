@@ -151,7 +151,7 @@ const RoleFormContent = ({ role, onClose }: RoleFormContentProps): React.ReactNo
             <PermissionsMatrix
               selectedKeys={selectedPermissionKeys}
               onToggle={handleTogglePermission}
-              disabled={isSystemRole && role?.name === 'Super Admin'}
+              disabled={isSystemRole}
             />
           </ScrollArea>
           {form.formState.errors.permissionKeys && (

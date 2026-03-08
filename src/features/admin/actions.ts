@@ -32,6 +32,7 @@ import type {
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 10
+const MAX_LIMIT = 100
 const CHART_PLAN_COLORS: Record<string, string> = {
   free: 'hsl(var(--chart-1))',
   pro: 'hsl(var(--chart-2))',
@@ -175,7 +176,7 @@ export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse
   await requireAdmin('users.view')
 
   const page = filters.page ?? DEFAULT_PAGE
-  const limit = filters.limit ?? DEFAULT_LIMIT
+  const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
   const skip = (page - 1) * limit
 
   const where = {

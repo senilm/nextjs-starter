@@ -11,25 +11,6 @@ import { UserPlus, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
@@ -46,6 +27,7 @@ import {
   useDeleteUser,
 } from '@/features/admin/hooks'
 import { getUserColumns } from '@/features/admin/components/user-columns'
+import { UserActionDialogs } from '@/features/admin/components/user-action-dialogs'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { UserDetailSheet } from '@/features/admin/components/user-detail-sheet'
 import { getRoles } from '@/features/roles/actions'
@@ -145,21 +127,17 @@ export const UserManagement = (): React.ReactNode => {
     resetPage()
   }
 
+  const inviteButton = canCreate ? (
+    <Button onClick={() => openDialog(DIALOG_KEY.INVITE_USER)}>
+      <UserPlus className="mr-2 size-4" />
+      Invite User
+    </Button>
+  ) : undefined
+
   if (!isLoading && !data?.users.length && !hasActiveFilters) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Users"
-          description="Manage user accounts, roles, and access."
-          actions={
-            canCreate ? (
-              <Button onClick={() => openDialog(DIALOG_KEY.INVITE_USER)}>
-                <UserPlus className="mr-2 size-4" />
-                Invite User
-              </Button>
-            ) : undefined
-          }
-        />
+        <PageHeader title="Users" description="Manage user accounts, roles, and access." actions={inviteButton} />
         <EmptyState icon={Users} title="No users found" description="No user accounts exist yet." />
       </div>
     )
@@ -167,18 +145,7 @@ export const UserManagement = (): React.ReactNode => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Users"
-        description="Manage user accounts, roles, and access."
-        actions={
-          canCreate ? (
-            <Button onClick={() => openDialog(DIALOG_KEY.INVITE_USER)}>
-              <UserPlus className="mr-2 size-4" />
-              Invite User
-            </Button>
-          ) : undefined
-        }
-      />
+      <PageHeader title="Users" description="Manage user accounts, roles, and access." actions={inviteButton} />
 
       <DataTable
         columns={columns}
@@ -212,115 +179,23 @@ export const UserManagement = (): React.ReactNode => {
 
       <UserDetailSheet userId={detailUserId} open={detailOpen} onOpenChange={setDetailOpen} />
 
-      <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will soft-delete the user and revoke all access. This action cannot be easily undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (deleteUserId) {
-                  deleteMutation.mutate(deleteUserId)
-                  setDeleteUserId(null)
-                }
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!suspendUserId} onOpenChange={(open) => !open && setSuspendUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Suspend User</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will prevent the user from signing in and revoke all active sessions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (suspendUserId) {
-                  suspendMutation.mutate(suspendUserId)
-                  setSuspendUserId(null)
-                }
-              }}
-            >
-              Suspend
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!unsuspendUserId} onOpenChange={(open) => !open && setUnsuspendUserId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unsuspend User</AlertDialogTitle>
-            <AlertDialogDescription>This will restore the user&apos;s access to the platform.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (unsuspendUserId) {
-                  unsuspendMutation.mutate(unsuspendUserId)
-                  setUnsuspendUserId(null)
-                }
-              }}
-            >
-              Unsuspend
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog open={!!changeRoleUserId} onOpenChange={(open) => !open && setChangeRoleUserId(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Change Role</DialogTitle>
-            <DialogDescription>Select a new role for this user.</DialogDescription>
-          </DialogHeader>
-          <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              {roles?.map((role) => (
-                <SelectItem key={role.id} value={role.id}>
-                  {role.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setChangeRoleUserId(null)}>
-              Cancel
-            </Button>
-            <Button
-              disabled={!selectedRoleId}
-              loading={changeRoleMutation.isPending}
-              onClick={() => {
-                if (changeRoleUserId && selectedRoleId) {
-                  changeRoleMutation.mutate({ userId: changeRoleUserId, roleId: selectedRoleId })
-                  setChangeRoleUserId(null)
-                  setSelectedRoleId('')
-                }
-              }}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UserActionDialogs
+        deleteUserId={deleteUserId}
+        setDeleteUserId={setDeleteUserId}
+        deleteMutation={deleteMutation}
+        suspendUserId={suspendUserId}
+        setSuspendUserId={setSuspendUserId}
+        suspendMutation={suspendMutation}
+        unsuspendUserId={unsuspendUserId}
+        setUnsuspendUserId={setUnsuspendUserId}
+        unsuspendMutation={unsuspendMutation}
+        changeRoleUserId={changeRoleUserId}
+        setChangeRoleUserId={setChangeRoleUserId}
+        selectedRoleId={selectedRoleId}
+        setSelectedRoleId={setSelectedRoleId}
+        changeRoleMutation={changeRoleMutation}
+        roles={roles}
+      />
     </div>
   )
 }

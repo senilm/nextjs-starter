@@ -8,6 +8,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AdminSidebar } from '@/components/layouts/admin-sidebar'
 import { DashboardTopbar } from '@/components/layouts/dashboard-topbar'
 import { AuthGuard } from '@/components/layouts/auth-guard'
+import { AdminGuard } from '@/components/layouts/admin-guard'
 
 export default function AdminLayout({
   children,
@@ -16,13 +17,15 @@ export default function AdminLayout({
 }>): React.ReactNode {
   return (
     <AuthGuard>
-      <SidebarProvider>
-        <AdminSidebar />
-        <SidebarInset className="h-svh overflow-hidden">
-          <DashboardTopbar />
-          <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
+      <AdminGuard>
+        <SidebarProvider>
+          <AdminSidebar />
+          <SidebarInset className="h-svh overflow-hidden">
+            <DashboardTopbar />
+            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          </SidebarInset>
+        </SidebarProvider>
+      </AdminGuard>
     </AuthGuard>
   )
 }

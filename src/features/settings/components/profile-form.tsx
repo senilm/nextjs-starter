@@ -65,11 +65,13 @@ export const ProfileForm = (): React.ReactNode => {
                 </FormItem>
               )}
             />
-            <div>
-              <label className="text-sm font-medium">Email</label>
-              <Input value={session?.user?.email ?? ''} disabled className="mt-1.5" />
-              <p className="mt-1 text-xs text-muted-foreground">Contact support to change your email.</p>
-            </div>
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input value={session?.user?.email ?? ''} disabled />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">Contact support to change your email.</p>
+            </FormItem>
             <Button type="submit" loading={form.formState.isSubmitting}>
               Save changes
             </Button>

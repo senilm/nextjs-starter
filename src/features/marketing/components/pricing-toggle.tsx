@@ -56,7 +56,7 @@ export const PricingToggle = (): React.ReactNode => {
                 : Math.round((plan.yearlyPrice ?? 0) / 100)
             }
             period={period}
-            features={plan.features}
+            features={plan.features as string[]}
             highlighted={plan.key === 'pro'}
           />
         ))}

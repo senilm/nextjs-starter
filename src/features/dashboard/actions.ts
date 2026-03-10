@@ -6,19 +6,14 @@
 
 'use server'
 
-import { headers } from 'next/headers'
-
-import { auth } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import type { DashboardStats, RecentProject } from '@/features/dashboard/types'
 
 const RECENT_PROJECTS_LIMIT = 5
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error('Unauthorized')
-
-  const userId = session.user.id
+  const { user: { id: userId } } = await requireAuth()
 
   const [totalProjects, activeProjects, subscription] = await Promise.all([
     prisma.project.count({ where: { userId, deletedAt: null } }),
@@ -41,8 +36,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getRecentProjects(): Promise<RecentProject[]> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error('Unauthorized')
+  const session = await requireAuth()
 
   const projects = await prisma.project.findMany({
     where: { userId: session.user.id, deletedAt: null },

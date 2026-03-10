@@ -11,7 +11,6 @@ import type {
   PaymentProvider,
   CreateCustomerParams,
   CreateCheckoutParams,
-  GetUpdatePaymentMethodUrlParams,
   CheckoutResult,
   WebhookResult,
 } from '@/lib/payment/types'
@@ -60,7 +59,7 @@ export class RazorpayProvider implements PaymentProvider {
         keyId,
         name: process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation',
         description: `Subscribe to plan`,
-        prefill: { email: '', name: '' },
+        prefill: { email: params.customer.email, name: params.customer.name },
         notes: {
           userId: params.metadata.userId,
           planId: params.metadata.planId,
@@ -77,12 +76,6 @@ export class RazorpayProvider implements PaymentProvider {
     await (this.razorpay.subscriptions as unknown as {
       resume: (id: string, opts: Record<string, string>) => Promise<void>
     }).resume(providerSubscriptionId, { resume_at: 'now' })
-  }
-
-  async getUpdatePaymentMethodUrl(
-    _params: GetUpdatePaymentMethodUrlParams,
-  ): Promise<string | null> {
-    return null
   }
 
   async handleWebhook(request: Request): Promise<WebhookResult> {

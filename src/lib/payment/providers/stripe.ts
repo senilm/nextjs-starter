@@ -10,7 +10,6 @@ import type {
   PaymentProvider,
   CreateCustomerParams,
   CreateCheckoutParams,
-  GetUpdatePaymentMethodUrlParams,
   CheckoutResult,
   WebhookResult,
   BillingInterval,
@@ -77,16 +76,6 @@ export class StripeProvider implements PaymentProvider {
     await this.stripe.subscriptions.update(providerSubscriptionId, {
       cancel_at_period_end: false,
     })
-  }
-
-  async getUpdatePaymentMethodUrl(
-    params: GetUpdatePaymentMethodUrlParams,
-  ): Promise<string | null> {
-    const session = await this.stripe.billingPortal.sessions.create({
-      customer: params.customerId,
-      return_url: params.returnUrl,
-    })
-    return session.url
   }
 
   async handleWebhook(request: Request): Promise<WebhookResult> {

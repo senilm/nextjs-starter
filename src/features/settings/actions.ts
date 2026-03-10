@@ -10,6 +10,7 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
 import { auth } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { profileSchema } from '@/features/settings/validations'
 
@@ -28,8 +29,7 @@ interface SessionInfo {
 }
 
 export async function updateProfile(input: unknown): Promise<ActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: 'Unauthorized' }
+  const session = await requireAuth()
 
   const parsed = profileSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }

@@ -27,11 +27,7 @@ export interface CreateCheckoutParams {
   cancelUrl: string
   trialDays?: number
   metadata: { userId: string; planId: string }
-}
-
-export interface GetUpdatePaymentMethodUrlParams {
-  customerId: string
-  returnUrl: string
+  customer: { email: string; name: string }
 }
 
 export interface RazorpayModalConfig {
@@ -78,10 +74,6 @@ export interface PaymentProvider {
   cancelSubscription(providerSubscriptionId: string): Promise<void>
 
   resumeSubscription(providerSubscriptionId: string): Promise<void>
-
-  getUpdatePaymentMethodUrl(
-    params: GetUpdatePaymentMethodUrlParams,
-  ): Promise<string | null>
 
   handleWebhook(request: Request): Promise<WebhookResult>
 }

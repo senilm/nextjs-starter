@@ -8,7 +8,7 @@
 
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { CreditCard, ExternalLink } from 'lucide-react'
+import { CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,6 @@ import { useSubscription } from '@/features/billing/hooks'
 import {
   cancelSubscription,
   resumeSubscription,
-  getUpdatePaymentMethodUrl,
 } from '@/features/billing/actions'
 
 export const SubscriptionDetails = (): React.ReactNode => {
@@ -63,19 +62,6 @@ export const SubscriptionDetails = (): React.ReactNode => {
       toast.error('Failed to resume subscription')
     } finally {
       setIsResuming(false)
-    }
-  }
-
-  const handleUpdatePayment = async (): Promise<void> => {
-    try {
-      const result = await getUpdatePaymentMethodUrl()
-      if (result.success && result.data) {
-        window.location.href = result.data
-      } else {
-        toast.error('Payment method update not available for this provider')
-      }
-    } catch {
-      toast.error('Failed to get payment update link')
     }
   }
 
@@ -150,10 +136,6 @@ export const SubscriptionDetails = (): React.ReactNode => {
                       Cancel Subscription
                     </Button>
                   )}
-                  <Button variant="ghost" onClick={handleUpdatePayment}>
-                    Update Payment Method
-                    <ExternalLink className="ml-1 size-4" />
-                  </Button>
                 </div>
               )}
             </div>

@@ -6,25 +6,21 @@
 
 'use server'
 
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
-import { auth } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
-import { hasPermission, invalidateUserSessions } from '@/lib/rbac'
+import { invalidateUserSessions } from '@/lib/rbac'
 import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations'
 import type { RoleWithPermissions, PermissionGroup, ActionResult } from '@/features/roles/types'
 
-async function requirePermission(permissionKey: string): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error('Unauthorized')
-  const allowed = await hasPermission(session.user.id, permissionKey)
-  if (!allowed) throw new Error('Permission denied')
+async function requireRolePermission(permissionKey: string): Promise<string> {
+  const session = await requirePermission(permissionKey)
   return session.user.id
 }
 
 export async function getRoles(): Promise<RoleWithPermissions[]> {
-  await requirePermission('roles.view')
+  await requireRolePermission('roles.view')
 
   const roles = await prisma.role.findMany({
     where: { deletedAt: null },
@@ -47,7 +43,7 @@ export async function getRoles(): Promise<RoleWithPermissions[]> {
 }
 
 export async function getRole(roleId: string): Promise<RoleWithPermissions | null> {
-  await requirePermission('roles.view')
+  await requireRolePermission('roles.view')
 
   const role = await prisma.role.findFirst({
     where: { id: roleId, deletedAt: null },
@@ -71,7 +67,7 @@ export async function getRole(roleId: string): Promise<RoleWithPermissions | nul
 }
 
 export async function getAllPermissions(): Promise<PermissionGroup[]> {
-  await requirePermission('roles.view')
+  await requireRolePermission('roles.view')
 
   const permissions = await prisma.permission.findMany({
     orderBy: [{ module: 'asc' }, { action: 'asc' }],
@@ -94,7 +90,7 @@ export async function getAllPermissions(): Promise<PermissionGroup[]> {
 }
 
 export async function createRole(input: unknown): Promise<ActionResult<RoleWithPermissions>> {
-  await requirePermission('roles.create')
+  await requireRolePermission('roles.create')
 
   const parsed = createRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -134,7 +130,7 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
 }
 
 export async function updateRole(input: unknown): Promise<ActionResult> {
-  await requirePermission('roles.edit')
+  await requireRolePermission('roles.edit')
 
   const parsed = updateRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -180,7 +176,7 @@ export async function updateRole(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteRole(roleId: string): Promise<ActionResult> {
-  await requirePermission('roles.delete')
+  await requireRolePermission('roles.delete')
 
   const role = await prisma.role.findFirst({
     where: { id: roleId, deletedAt: null },

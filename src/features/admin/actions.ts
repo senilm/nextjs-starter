@@ -6,13 +6,11 @@
 
 'use server'
 
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { subDays, subMonths, startOfDay, startOfMonth, format } from 'date-fns'
 
-import { auth } from '@/lib/auth'
+import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
-import { hasPermission } from '@/lib/rbac'
 import { invalidateUserSessions } from '@/lib/rbac'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
@@ -42,10 +40,7 @@ const MONTHS_IN_CHART = 12
 const DAYS_IN_SIGNUPS_CHART = 7
 
 async function requireAdmin(permissionKey: string): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error('Unauthorized')
-  const allowed = await hasPermission(session.user.id, permissionKey)
-  if (!allowed) throw new Error('Permission denied')
+  const session = await requirePermission(permissionKey)
   return session.user.id
 }
 
@@ -318,7 +313,7 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
 }
 
 export async function inviteUser(input: unknown): Promise<ActionResult> {
-  await requireAdmin('users.create')
+  const session = await requirePermission('users.create')
 
   const parsed = inviteUserSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -330,8 +325,6 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
 
   const { nanoid } = await import('nanoid')
   const INVITATION_EXPIRY_DAYS = 7
-
-  const session = (await auth.api.getSession({ headers: await headers() }))!
   const token = nanoid()
 
   await prisma.userInvitation.create({

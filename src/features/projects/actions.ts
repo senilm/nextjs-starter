@@ -6,10 +6,9 @@
 
 'use server'
 
-import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
-import { auth } from '@/lib/auth'
+import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ProjectFilters, ProjectsResponse, ActionResult, Project } from '@/features/projects/types'
@@ -18,8 +17,7 @@ const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 10
 
 export async function getProjects(filters: ProjectFilters = {}): Promise<ProjectsResponse> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) throw new Error('Unauthorized')
+  const session = await requireAuth()
 
   const page = filters.page ?? DEFAULT_PAGE
   const limit = filters.limit ?? DEFAULT_LIMIT
@@ -66,8 +64,7 @@ export async function getProjects(filters: ProjectFilters = {}): Promise<Project
 }
 
 export async function createProject(input: unknown): Promise<ActionResult<Project>> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: 'Unauthorized' }
+  const session = await requireAuth()
 
   const parsed = createProjectSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -114,8 +111,7 @@ export async function createProject(input: unknown): Promise<ActionResult<Projec
 }
 
 export async function updateProject(input: unknown): Promise<ActionResult<Project>> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: 'Unauthorized' }
+  const session = await requireAuth()
 
   const parsed = updateProjectSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -149,8 +145,7 @@ export async function updateProject(input: unknown): Promise<ActionResult<Projec
 }
 
 export async function deleteProject(projectId: string): Promise<ActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: 'Unauthorized' }
+  const session = await requireAuth()
 
   const existing = await prisma.project.findFirst({
     where: { id: projectId, userId: session.user.id, deletedAt: null },

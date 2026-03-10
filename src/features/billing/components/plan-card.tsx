@@ -22,23 +22,12 @@ import { useCheckout } from '@/features/billing/hooks/use-checkout'
 import { getActivePlans } from '@/features/billing/actions'
 import type { BillingInterval } from '@/lib/payment/types'
 
-interface PlanDisplay {
-  id: string
-  key: string
-  name: string
-  description: string | null
-  monthlyPrice: number | null
-  yearlyPrice: number | null
-  features: string[]
-  isActive: boolean
-}
-
 export const PlanCard = (): React.ReactNode => {
   const { data: subscription, isLoading: subLoading } = useSubscription()
   const [interval, setInterval] = useState<BillingInterval>('monthly')
   const { checkout, isLoading: checkoutLoading } = useCheckout()
 
-  const { data: plans, isLoading: plansLoading } = useQuery<PlanDisplay[]>({
+  const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ['plans', 'active'],
     queryFn: getActivePlans,
   })
@@ -112,7 +101,7 @@ export const PlanCard = (): React.ReactNode => {
                         {isFree ? 'Free' : formatAmount(price ?? 0, 'usd')}
                       </span>
                       {!isFree && (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           /{interval === 'yearly' ? 'year' : 'month'}
                         </span>
                       )}
@@ -120,9 +109,9 @@ export const PlanCard = (): React.ReactNode => {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {plan.features.map((feature) => (
+                      {(plan.features as string[])?.map((feature) => (
                         <li key={feature} className="flex items-center gap-2 text-sm">
-                          <Check className="size-4 text-primary" />
+                          <Check className="text-primary size-4" />
                           {feature}
                         </li>
                       ))}
@@ -140,7 +129,7 @@ export const PlanCard = (): React.ReactNode => {
                         <Button
                           className="w-full"
                           variant={isPopular ? 'default' : 'outline'}
-                          onClick={() => handleUpgrade(plan.id)}
+                          onClick={() => handleUpgrade(plan?.id as string)}
                           loading={checkoutLoading}
                         >
                           {subscription?.planKey === 'free' ? 'Upgrade' : 'Change Plan'}

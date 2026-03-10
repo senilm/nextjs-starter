@@ -8,8 +8,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { getActivePaymentProvider } from '@/features/billing/actions'
 import type { PaymentProviderName } from '@/lib/payment/types'
+import { getPaymentProviderName } from '@/lib/payment'
 
 export function usePaymentProvider(): {
   provider: PaymentProviderName | undefined
@@ -17,7 +17,7 @@ export function usePaymentProvider(): {
 } {
   const { data, isLoading } = useQuery({
     queryKey: ['billing', 'provider'],
-    queryFn: getActivePaymentProvider,
+    queryFn: getPaymentProviderName,
     staleTime: Infinity,
   })
 

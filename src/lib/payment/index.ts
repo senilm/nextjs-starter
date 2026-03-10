@@ -6,8 +6,6 @@
 
 import type { PaymentProvider, PaymentProviderName } from '@/lib/payment/types'
 
-let cachedProvider: PaymentProvider | null = null
-
 export function getPaymentProviderName(): PaymentProviderName {
   const provider = process.env.PAYMENT_PROVIDER ?? 'stripe'
   if (provider !== 'stripe' && provider !== 'razorpay') {
@@ -17,17 +15,13 @@ export function getPaymentProviderName(): PaymentProviderName {
 }
 
 export async function getPaymentProvider(): Promise<PaymentProvider> {
-  if (cachedProvider) return cachedProvider
-
   const name = getPaymentProviderName()
 
   if (name === 'stripe') {
     const { StripeProvider } = await import('@/lib/payment/providers/stripe')
-    cachedProvider = new StripeProvider()
-  } else {
-    const { RazorpayProvider } = await import('@/lib/payment/providers/razorpay')
-    cachedProvider = new RazorpayProvider()
+    return new StripeProvider()
   }
 
-  return cachedProvider
+  const { RazorpayProvider } = await import('@/lib/payment/providers/razorpay')
+  return new RazorpayProvider()
 }

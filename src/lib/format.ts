@@ -35,6 +35,26 @@ export const formatDateShort = (date: Date): string =>
     day: 'numeric',
   }).format(date)
 
+const CURRENCY_DECIMALS: Record<string, number> = {
+  usd: 2,
+  eur: 2,
+  gbp: 2,
+  inr: 2,
+  jpy: 0,
+}
+
+export const formatPaymentAmount = (amountInSmallestUnit: number, currency: string): string => {
+  const decimals = CURRENCY_DECIMALS[currency.toLowerCase()] ?? 2
+  const divisor = Math.pow(10, decimals)
+  const amount = amountInSmallestUnit / divisor
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: decimals,
+  }).format(amount)
+}
+
 export const formatCurrency = (
   value?: number | null,
   options: { currency?: string; compact?: boolean } = {},

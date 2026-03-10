@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { CardWithHeaderSkeleton } from '@/components/shared/loading-skeleton'
 import { LoadingTransition } from '@/components/shared/loading-transition'
-import { formatAmount } from '@/lib/payment/helpers'
+import { formatPaymentAmount } from '@/lib/format'
 import { useSubscription } from '@/features/billing/hooks'
 import { useCheckout } from '@/features/billing/hooks/use-checkout'
 import { getActivePlans } from '@/features/billing/actions'
@@ -98,7 +98,7 @@ export const PlanCard = (): React.ReactNode => {
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="pt-2">
                       <span className="text-3xl font-bold">
-                        {isFree ? 'Free' : formatAmount(price ?? 0, 'usd')}
+                        {isFree ? 'Free' : formatPaymentAmount(price ?? 0, 'usd')}
                       </span>
                       {!isFree && (
                         <span className="text-muted-foreground text-sm">

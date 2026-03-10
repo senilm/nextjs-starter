@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { CardWithHeaderSkeleton } from '@/components/shared/loading-skeleton'
 import { LoadingTransition } from '@/components/shared/loading-transition'
 import { formatDate } from '@/lib/format'
-import { formatAmount } from '@/lib/payment/helpers'
+import { formatPaymentAmount } from '@/lib/format'
 import { getPaymentHistory } from '@/features/billing/actions'
 import { PaymentWithPlan } from '../types'
 
@@ -75,7 +75,7 @@ export const PaymentHistory = (): React.ReactNode => {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium">
-                        {formatAmount(payment.amount, payment.currency)}
+                        {formatPaymentAmount(payment.amount, payment.currency)}
                       </span>
                       {payment.invoiceUrl && (
                         <Button variant="ghost" size="icon-xs" asChild>

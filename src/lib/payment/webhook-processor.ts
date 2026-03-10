@@ -10,7 +10,7 @@ import { prisma } from '@/lib/prisma'
 import { APP_NAME, APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
-import { formatAmount } from '@/lib/payment/helpers'
+import { formatPaymentAmount } from '@/lib/format'
 import type { WebhookResult } from '@/lib/payment/types'
 
 export async function processWebhookResult(result: WebhookResult): Promise<void> {
@@ -71,7 +71,7 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
           template: PaymentConfirmation({
             name: user.name,
             planName: plan.name,
-            amount: formatAmount(result.amount, result.currency ?? 'usd'),
+            amount: formatPaymentAmount(result.amount, result.currency ?? 'usd'),
             nextBillingDate,
           }),
         })
@@ -119,7 +119,7 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
           template: PaymentConfirmation({
             name: user.name,
             planName: plan.name,
-            amount: formatAmount(result.amount, result.currency ?? 'usd'),
+            amount: formatPaymentAmount(result.amount, result.currency ?? 'usd'),
             nextBillingDate,
           }),
         })

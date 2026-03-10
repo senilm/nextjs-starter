@@ -14,60 +14,21 @@ import { getPaymentProvider, getPaymentProviderName } from '@/lib/payment'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import type {
-  SubscriptionData,
-  PaymentRecord,
+  SubscriptionWithPlan,
   CheckoutInput,
   ActionResult,
+  PaymentWithPlan,
 } from '@/features/billing/types'
 import type { CheckoutResult, PaymentProviderName } from '@/lib/payment/types'
 import { Plan } from '@prisma/client'
 
-export async function getSubscription(): Promise<SubscriptionData> {
+export async function getSubscription(): Promise<SubscriptionWithPlan> {
   const { user: { id: userId } } = await requireAuth()
 
-  const subscription = await prisma.subscription.findUnique({
+  return prisma.subscription.findUniqueOrThrow({
     where: { userId },
     include: { plan: true },
   })
-
-  if (!subscription) {
-    const freePlan = await prisma.plan.findFirst({ where: { key: 'free' } })
-    return {
-      planId: freePlan?.id ?? '',
-      planKey: 'free',
-      planName: 'Free',
-      status: 'active',
-      provider: null,
-      interval: null,
-      cancelAtPeriodEnd: false,
-      periodStart: null,
-      periodEnd: null,
-      trialStart: null,
-      trialEnd: null,
-      limits: (freePlan?.limits as Record<string, number>) ?? { projects: 3, storage: 1 },
-      features: (freePlan?.features as string[]) ?? [],
-      monthlyPrice: freePlan?.monthlyPrice ?? 0,
-      yearlyPrice: freePlan?.yearlyPrice ?? 0,
-    }
-  }
-
-  return {
-    planId: subscription.planId,
-    planKey: subscription.plan.key,
-    planName: subscription.plan.name,
-    status: subscription.status,
-    provider: subscription.provider,
-    interval: subscription.interval,
-    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
-    periodStart: subscription.periodStart,
-    periodEnd: subscription.periodEnd,
-    trialStart: subscription.trialStart,
-    trialEnd: subscription.trialEnd,
-    limits: subscription.plan.limits as Record<string, number>,
-    features: subscription.plan.features as string[],
-    monthlyPrice: subscription.plan.monthlyPrice,
-    yearlyPrice: subscription.plan.yearlyPrice,
-  }
 }
 
 export async function initiateCheckout(
@@ -168,27 +129,15 @@ export async function resumeSubscription(): Promise<ActionResult> {
   return { success: true }
 }
 
-export async function getPaymentHistory(): Promise<PaymentRecord[]> {
+export async function getPaymentHistory(): Promise<PaymentWithPlan[]> {
   const { user: { id: userId } } = await requireAuth()
 
-  const payments = await prisma.payment.findMany({
+  return prisma.payment.findMany({
     where: { userId },
     include: { plan: { select: { name: true } } },
     orderBy: { paidAt: 'desc' },
     take: 50,
   })
-
-  return payments.map((p) => ({
-    id: p.id,
-    planName: p.plan.name,
-    amount: p.amount,
-    currency: p.currency,
-    status: p.status,
-    interval: p.interval,
-    invoiceUrl: p.invoiceUrl,
-    paidAt: p.paidAt,
-    createdAt: p.createdAt,
-  }))
 }
 
 export async function getActivePlans(): Promise<Plan[]> {

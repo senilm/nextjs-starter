@@ -72,7 +72,7 @@ export const PlanCard = (): React.ReactNode => {
 
         <div className="grid gap-4 md:grid-cols-3">
           {plans?.map((plan, index) => {
-            const isCurrentPlan = subscription?.planKey === plan.key
+            const isCurrentPlan = subscription?.plan.key === plan.key
             const price = interval === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice
             const isFree = plan.key === 'free'
             const isPopular = plan.key === 'pro'
@@ -132,7 +132,7 @@ export const PlanCard = (): React.ReactNode => {
                           onClick={() => handleUpgrade(plan?.id as string)}
                           loading={checkoutLoading}
                         >
-                          {subscription?.planKey === 'free' ? 'Upgrade' : 'Change Plan'}
+                          {subscription?.plan.key === 'free' ? 'Upgrade' : 'Change Plan'}
                         </Button>
                       )}
                     </div>

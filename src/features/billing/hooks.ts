@@ -9,13 +9,11 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getSubscription } from '@/features/billing/actions'
-import type { SubscriptionData } from '@/features/billing/types'
+import type { SubscriptionWithPlan } from '@/features/billing/types'
 
-export function useSubscription(): ReturnType<typeof useQuery<SubscriptionData>> {
+export function useSubscription(): ReturnType<typeof useQuery<SubscriptionWithPlan>> {
   return useQuery({
     queryKey: ['billing', 'subscription'],
-    queryFn: async (): Promise<SubscriptionData> => {
-      return await getSubscription()
-    },
+    queryFn: getSubscription,
   })
 }

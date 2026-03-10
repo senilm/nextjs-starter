@@ -18,7 +18,7 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { formatDate } from '@/lib/format'
 import { formatAmount } from '@/lib/payment/helpers'
 import { getPaymentHistory } from '@/features/billing/actions'
-import type { PaymentRecord } from '@/features/billing/types'
+import { PaymentWithPlan } from '../types'
 
 const STATUS_VARIANT: Record<string, 'default' | 'destructive' | 'secondary'> = {
   succeeded: 'default',
@@ -27,16 +27,13 @@ const STATUS_VARIANT: Record<string, 'default' | 'destructive' | 'secondary'> = 
 }
 
 export const PaymentHistory = (): React.ReactNode => {
-  const { data: payments, isLoading } = useQuery<PaymentRecord[]>({
+  const { data: payments, isLoading } = useQuery<PaymentWithPlan[]>({
     queryKey: ['billing', 'payments'],
     queryFn: getPaymentHistory,
   })
 
   return (
-    <LoadingTransition
-      isLoading={isLoading}
-      loader={<CardWithHeaderSkeleton contentLines={3} />}
-    >
+    <LoadingTransition isLoading={isLoading} loader={<CardWithHeaderSkeleton contentLines={3} />}>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,7 +42,7 @@ export const PaymentHistory = (): React.ReactNode => {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
                 <Receipt className="size-5" />
               </div>
               <div>
@@ -56,7 +53,7 @@ export const PaymentHistory = (): React.ReactNode => {
           </CardHeader>
           <CardContent>
             {!payments?.length ? (
-              <p className="text-sm text-muted-foreground">No payments yet.</p>
+              <p className="text-muted-foreground text-sm">No payments yet.</p>
             ) : (
               <div className="space-y-3">
                 {payments.map((payment) => (
@@ -66,17 +63,15 @@ export const PaymentHistory = (): React.ReactNode => {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{payment.planName}</span>
+                        <span className="text-sm font-medium">{payment.plan.name}</span>
                         <Badge variant={STATUS_VARIANT[payment.status] ?? 'secondary'}>
                           {payment.status}
                         </Badge>
-                        <span className="text-xs text-muted-foreground capitalize">
+                        <span className="text-muted-foreground text-xs capitalize">
                           {payment.interval}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(payment.paidAt)}
-                      </p>
+                      <p className="text-muted-foreground text-xs">{formatDate(payment.paidAt)}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium">
@@ -84,11 +79,7 @@ export const PaymentHistory = (): React.ReactNode => {
                       </span>
                       {payment.invoiceUrl && (
                         <Button variant="ghost" size="icon-xs" asChild>
-                          <a
-                            href={payment.invoiceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href={payment.invoiceUrl} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="size-3.5" />
                           </a>
                         </Button>

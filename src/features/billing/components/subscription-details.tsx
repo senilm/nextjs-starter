@@ -28,7 +28,7 @@ export const SubscriptionDetails = (): React.ReactNode => {
   const [isCanceling, setIsCanceling] = useState(false)
   const [isResuming, setIsResuming] = useState(false)
 
-  const isFreePlan = subscription?.planKey === 'free'
+  const isFreePlan = subscription?.plan.key === 'free'
   const isPaid = !isFreePlan && subscription?.provider
 
   const handleCancel = async (): Promise<void> => {
@@ -83,7 +83,7 @@ export const SubscriptionDetails = (): React.ReactNode => {
               </div>
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  {subscription?.planName ?? 'Free'} Plan
+                  {subscription?.plan.name ?? 'Free'} Plan
                   <Badge variant={isFreePlan ? 'secondary' : 'default'}>
                     {subscription?.status === 'trialing'
                       ? 'Trial'
@@ -110,7 +110,7 @@ export const SubscriptionDetails = (): React.ReactNode => {
               <div>
                 <p className="text-sm font-medium">Included features:</p>
                 <ul className="mt-2 space-y-1">
-                  {subscription?.features.map((feature) => (
+                  {(subscription?.plan.features as string[])?.map((feature) => (
                     <li key={feature} className="text-sm text-muted-foreground">
                       &bull; {feature}
                     </li>

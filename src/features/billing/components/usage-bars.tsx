@@ -22,11 +22,11 @@ export const UsageBars = (): React.ReactNode => {
   const isLoading = subLoading || statsLoading
 
   const projectsUsed = stats?.totalProjects ?? 0
-  const projectsLimit = subscription?.limits.projects ?? 3
+  const projectsLimit = (subscription?.plan.limits as Record<string, number>)?.projects ?? 3
   const projectsPercent = Math.min(Math.round((projectsUsed / projectsLimit) * 100), 100)
 
   const storageUsed = stats?.storageUsed ?? 0
-  const storageLimit = subscription?.limits.storage ?? 1
+  const storageLimit = (subscription?.plan.limits as Record<string, number>)?.storage ?? 1
   const storagePercent = Math.min(Math.round((storageUsed / storageLimit) * 100), 100)
 
   return (

@@ -4,35 +4,16 @@
  * Billing-specific types for subscription and payment data.
  */
 
-export interface SubscriptionData {
-  planId: string
-  planKey: string
-  planName: string
-  status: string
-  provider: string | null
-  interval: string | null
-  cancelAtPeriodEnd: boolean
-  periodStart: Date | null
-  periodEnd: Date | null
-  trialStart: Date | null
-  trialEnd: Date | null
-  limits: Record<string, number>
-  features: string[]
-  monthlyPrice: number | null
-  yearlyPrice: number | null
-}
+import { Prisma } from "@prisma/client"
 
-export interface PaymentRecord {
-  id: string
-  planName: string
-  amount: number
-  currency: string
-  status: string
-  interval: string
-  invoiceUrl: string | null
-  paidAt: Date
-  createdAt: Date
-}
+export type SubscriptionWithPlan = Prisma.SubscriptionGetPayload<{
+  include: { plan: true }
+}>
+
+export type PaymentWithPlan = Prisma.PaymentGetPayload<{
+  include: { plan: { select: { name: true } } }
+}>
+
 
 export interface CheckoutInput {
   planId: string

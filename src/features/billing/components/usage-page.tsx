@@ -27,11 +27,11 @@ export const UsagePage = (): React.ReactNode => {
   const isLoading = statsLoading || subLoading
 
   const projectsUsed = stats?.totalProjects ?? 0
-  const projectsLimit = subscription?.limits.projects ?? 3
+  const projectsLimit = (subscription?.plan.limits as Record<string, number>)?.projects ?? 3
   const projectsPercent = Math.min(Math.round((projectsUsed / projectsLimit) * 100), 100)
 
   const storageUsed = stats?.storageUsed ?? 0
-  const storageLimit = subscription?.limits.storage ?? 1
+  const storageLimit = (subscription?.plan.limits as Record<string, number>)?.storage ?? 1
   const storagePercent = Math.min(Math.round((storageUsed / storageLimit) * 100), 100)
 
   return (
@@ -51,7 +51,7 @@ export const UsagePage = (): React.ReactNode => {
             <CardHeader>
               <CardTitle>Resource Usage</CardTitle>
               <CardDescription>
-                You are on the {subscription?.planName ?? 'Free'} plan.
+                You are on the {subscription?.plan.name ?? 'Free'} plan.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -76,7 +76,7 @@ export const UsagePage = (): React.ReactNode => {
             </CardContent>
           </Card>
 
-          {subscription?.planKey === 'free' && (
+          {subscription?.plan.key === 'free' && (
             <Card>
               <CardContent className="flex items-center justify-between">
                 <div>

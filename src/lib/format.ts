@@ -34,3 +34,19 @@ export const formatDateShort = (date: Date): string =>
     month: 'short',
     day: 'numeric',
   }).format(date)
+
+export const formatCurrency = (
+  value?: number | null,
+  options: { currency?: string; compact?: boolean } = {},
+): string => {
+  if (value === null || value === undefined) return '\u2014'
+  const { currency = 'USD', compact = false } = options
+  if (compact && value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
+  if (compact && value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}

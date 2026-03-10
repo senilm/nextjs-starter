@@ -26,6 +26,10 @@ export const changePasswordSchema = z
       .regex(/[0-9]/, 'Must contain a number'),
     confirmPassword: z.string(),
   })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: 'New password must be different from current password',
+    path: ['newPassword'],
+  })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],

@@ -27,7 +27,7 @@ const RAZORPAY_SCRIPT_URL = 'https://checkout.razorpay.com/v1/checkout.js'
 
 interface UseCheckoutReturn {
   checkout: (input: CheckoutInput) => Promise<void>
-  isLoading: boolean
+  loadingPlanId: string | null
 }
 
 function loadRazorpayScript(): Promise<boolean> {
@@ -45,7 +45,7 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 export function useCheckout(): UseCheckoutReturn {
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const openRazorpayModal = useCallback(
@@ -74,7 +74,7 @@ export function useCheckout(): UseCheckoutReturn {
   )
 
   const checkout = async (input: CheckoutInput): Promise<void> => {
-    setIsLoading(true)
+    setLoadingPlanId(input.planId)
     try {
       const result = await initiateCheckout(input)
       if (!result.success || !result.data) {
@@ -92,9 +92,9 @@ export function useCheckout(): UseCheckoutReturn {
     } catch {
       toast.error('Something went wrong during checkout')
     } finally {
-      setIsLoading(false)
+      setLoadingPlanId(null)
     }
   }
 
-  return { checkout, isLoading }
+  return { checkout, loadingPlanId }
 }

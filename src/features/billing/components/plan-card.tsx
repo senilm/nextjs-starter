@@ -25,7 +25,7 @@ import type { BillingInterval } from '@/lib/payment/types'
 export const PlanCard = (): React.ReactNode => {
   const { data: subscription, isLoading: subLoading } = useSubscription()
   const [interval, setInterval] = useState<BillingInterval>('monthly')
-  const { checkout, isLoading: checkoutLoading } = useCheckout()
+  const { checkout, loadingPlanId } = useCheckout()
 
   const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ['plans', 'active'],
@@ -130,7 +130,8 @@ export const PlanCard = (): React.ReactNode => {
                           className="w-full"
                           variant={isPopular ? 'default' : 'outline'}
                           onClick={() => handleUpgrade(plan?.id as string)}
-                          loading={checkoutLoading}
+                          loading={loadingPlanId === plan.id}
+                          disabled={loadingPlanId !== null}
                         >
                           {subscription?.plan.key === 'free' ? 'Upgrade' : 'Change Plan'}
                         </Button>

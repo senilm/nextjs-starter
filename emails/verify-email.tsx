@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface VerifyEmailProps {
   name: string
@@ -35,7 +35,7 @@ export const VerifyEmail = ({ name, verifyUrl }: VerifyEmailProps): React.ReactE
 
 VerifyEmail.PreviewProps = {
   name: 'John',
-  verifyUrl: 'http://localhost:3000/api/auth/verify-email?token=abc123',
+  verifyUrl: `${EMAIL_APP_URL}/api/auth/verify-email?token=abc123`,
 } satisfies VerifyEmailProps
 
 export default VerifyEmail

@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface PaymentFailedProps {
   name: string
@@ -35,7 +35,7 @@ export const PaymentFailed = ({
 
 PaymentFailed.PreviewProps = {
   name: 'John',
-  updatePaymentUrl: 'http://localhost:3000/dashboard/billing',
+  updatePaymentUrl: `${EMAIL_APP_URL}/dashboard/billing`,
 } satisfies PaymentFailedProps
 
 export default PaymentFailed

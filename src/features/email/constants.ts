@@ -4,6 +4,8 @@
  * Shared constants used across all email templates.
  */
 
-export const EMAIL_APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation'
-export const EMAIL_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+import { APP_NAME, APP_URL } from '@/lib/config'
+
+export const EMAIL_APP_NAME = APP_NAME
+export const EMAIL_APP_URL = APP_URL
 export const EMAIL_SUPPORT = process.env.EMAIL_FROM ?? 'noreply@example.com'

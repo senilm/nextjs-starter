@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface PasswordResetProps {
   name: string
@@ -34,7 +34,7 @@ export const PasswordReset = ({ name, resetUrl }: PasswordResetProps): React.Rea
 
 PasswordReset.PreviewProps = {
   name: 'John',
-  resetUrl: 'http://localhost:3000/reset-password?token=abc123',
+  resetUrl: `${EMAIL_APP_URL}/reset-password?token=abc123`,
 } satisfies PasswordResetProps
 
 export default PasswordReset

@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface SubscriptionCanceledProps {
   name: string
@@ -41,7 +41,7 @@ export const SubscriptionCanceled = ({
 SubscriptionCanceled.PreviewProps = {
   name: 'John',
   accessUntil: 'April 1, 2026',
-  resubscribeUrl: 'http://localhost:3000/dashboard/billing',
+  resubscribeUrl: `${EMAIL_APP_URL}/dashboard/billing`,
 } satisfies SubscriptionCanceledProps
 
 export default SubscriptionCanceled

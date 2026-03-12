@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface MagicLinkProps {
   loginUrl: string
@@ -31,7 +31,7 @@ export const MagicLink = ({ loginUrl }: MagicLinkProps): React.ReactElement => (
 )
 
 MagicLink.PreviewProps = {
-  loginUrl: 'http://localhost:3000/api/auth/magic-link/verify?token=abc123',
+  loginUrl: `${EMAIL_APP_URL}/api/auth/magic-link/verify?token=abc123`,
 } satisfies MagicLinkProps
 
 export default MagicLink

@@ -9,7 +9,7 @@ import { Section, Text } from '@react-email/components'
 import { EmailLayout } from './components/email-layout'
 import { EmailButton } from './components/email-button'
 import { EmailHeading } from './components/email-heading'
-import { EMAIL_APP_NAME } from '../src/features/email/constants'
+import { EMAIL_APP_NAME, EMAIL_APP_URL } from '../src/features/email/constants'
 
 interface UserInvitationProps {
   inviterName: string
@@ -40,7 +40,7 @@ export const UserInvitation = ({
 UserInvitation.PreviewProps = {
   inviterName: 'Jane Admin',
   roleName: 'Editor',
-  signUpUrl: 'http://localhost:3000/sign-up?token=abc123',
+  signUpUrl: `${EMAIL_APP_URL}/sign-up?token=abc123`,
 } satisfies UserInvitationProps
 
 export default UserInvitation

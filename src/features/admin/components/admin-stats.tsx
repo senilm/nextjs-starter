@@ -24,25 +24,25 @@ export const AdminStats = (): React.ReactNode => {
             title="Total Users"
             value={stats.totalUsers.toLocaleString()}
             icon={Users}
-            trend={{ value: stats.usersTrend, label: 'vs last week' }}
+            trend={{ value: `${stats.usersTrend >= 0 ? '+' : ''}${stats.usersTrend}%`, label: 'vs last week', isPositive: stats.usersTrend >= 0 }}
           />
           <StatsCard
             title="Active Subscriptions"
             value={stats.activeSubscriptions.toLocaleString()}
             icon={CreditCard}
-            trend={{ value: stats.subscriptionsTrend, label: 'vs last month' }}
+            trend={{ value: `${stats.subscriptionsTrend >= 0 ? '+' : ''}${stats.subscriptionsTrend}%`, label: 'vs last month', isPositive: stats.subscriptionsTrend >= 0 }}
           />
           <StatsCard
             title="MRR"
             value={`$${stats.mrr.toLocaleString()}`}
             icon={DollarSign}
-            trend={{ value: stats.mrrTrend, label: 'vs last month' }}
+            trend={{ value: `${stats.mrrTrend >= 0 ? '+' : ''}${stats.mrrTrend}%`, label: 'vs last month', isPositive: stats.mrrTrend >= 0 }}
           />
           <StatsCard
             title="New Signups (7d)"
             value={stats.newSignups7d.toLocaleString()}
             icon={UserPlus}
-            trend={{ value: stats.signupsTrend, label: 'vs prev 7d' }}
+            trend={{ value: `${stats.signupsTrend >= 0 ? '+' : ''}${stats.signupsTrend}%`, label: 'vs prev 7d', isPositive: stats.signupsTrend >= 0 }}
           />
         </div>
       )}

@@ -70,3 +70,16 @@ export const formatCurrency = (
     maximumFractionDigits: 2,
   }).format(value)
 }
+
+export const formatLabel = (str: string): string => str.replace(/_/g, ' ')
+
+export const formatFullName = (firstName?: string | null, lastName?: string | null): string =>
+  [firstName, lastName].filter(Boolean).join(' ')
+
+export const humanize = (str: string): string =>
+  str
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+
+export const toDateInputValue = (isoString?: string | null): string =>
+  isoString?.split('T')[0] ?? ''

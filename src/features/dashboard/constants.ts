@@ -8,10 +8,10 @@ import type { ChartConfig } from '@/components/ui/chart'
 import type { ActivityDataPoint } from '@/features/dashboard/types'
 
 export const STAT_TRENDS = {
-  totalProjects: { value: 12, label: 'from last month' },
-  activeProjects: { value: 8, label: 'from last month' },
-  storageUsed: { value: -3, label: 'from last month' },
-  planUsage: { value: 5, label: 'from last month' },
+  totalProjects: { value: '+12%', label: 'from last month', isPositive: true },
+  activeProjects: { value: '+8%', label: 'from last month', isPositive: true },
+  storageUsed: { value: '-3%', label: 'from last month', isPositive: false },
+  planUsage: { value: '+5%', label: 'from last month', isPositive: true },
 } as const
 
 export const ACTIVITY_CHART_DATA: ActivityDataPoint[] = [

@@ -88,7 +88,9 @@ const EditPlanDialog = lazy(() =>
 )
 
 export const GlobalDialogs = (): React.ReactNode => {
-  const { openDialogs, dialogData, closeDialog } = useDialogStore()
+  const openDialogs = useDialogStore((s) => s.openDialogs)
+  const dialogData = useDialogStore((s) => s.dialogData)
+  const closeDialog = useDialogStore((s) => s.closeDialog)
   const perms = usePermissions([
     'users.create',
     'users.edit',

@@ -30,7 +30,7 @@ export const SignupsChart = (): React.ReactNode => {
       <CardContent>
         <LoadingTransition isLoading={isLoading || !data} loader={<ChartSkeleton />}>
           {data && (
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="h-75 w-full">
               <AreaChart data={data} accessibilityLayer>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />

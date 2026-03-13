@@ -32,7 +32,7 @@ export const SubscriptionsChart = (): React.ReactNode => {
       <CardContent>
         <LoadingTransition isLoading={isLoading || !data} loader={<ChartSkeleton />}>
           {data && (
-            <ChartContainer config={chartConfig} className="mx-auto h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="mx-auto h-75 w-full">
               <PieChart accessibilityLayer>
                 <ChartTooltip content={<ChartTooltipContent nameKey="plan" />} />
                 <Pie

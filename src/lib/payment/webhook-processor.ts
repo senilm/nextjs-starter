@@ -5,6 +5,7 @@
  */
 
 import { format } from 'date-fns'
+import { after } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
 import { APP_NAME, APP_URL } from '@/lib/config'
@@ -98,9 +99,11 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
 
       const plan = await prisma.plan.findUnique({ where: { id: planId } })
       if (plan && result.amount != null) {
-        await sendPaymentConfirmation(
-          user.email, user.name, plan.name,
-          result.amount, result.currency ?? 'usd', result.periodEnd,
+        after(() =>
+          sendPaymentConfirmation(
+            user.email, user.name, plan.name,
+            result.amount!, result.currency ?? 'usd', result.periodEnd,
+          ),
         )
       }
       break
@@ -125,9 +128,11 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
 
       const renewedPlan = await prisma.plan.findUnique({ where: { id: subscription.planId } })
       if (renewedPlan && result.amount != null) {
-        await sendPaymentConfirmation(
-          user.email, user.name, renewedPlan.name,
-          result.amount, result.currency ?? 'usd', result.periodEnd,
+        after(() =>
+          sendPaymentConfirmation(
+            user.email, user.name, renewedPlan.name,
+            result.amount!, result.currency ?? 'usd', result.periodEnd,
+          ),
         )
       }
       break
@@ -154,15 +159,17 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
         },
       })
 
-      const { SubscriptionCanceled } = await import('../../../emails/subscription-canceled')
-      await sendEmail({
-        to: user.email,
-        subject: `Subscription canceled — ${APP_NAME}`,
-        template: SubscriptionCanceled({
-          name: user.name,
-          accessUntil: 'now',
-          resubscribeUrl: `${APP_URL}${paths.dashboard.billing()}`,
-        }),
+      after(async () => {
+        const { SubscriptionCanceled } = await import('../../../emails/subscription-canceled')
+        await sendEmail({
+          to: user.email,
+          subject: `Subscription canceled — ${APP_NAME}`,
+          template: SubscriptionCanceled({
+            name: user.name,
+            accessUntil: 'now',
+            resubscribeUrl: `${APP_URL}${paths.dashboard.billing()}`,
+          }),
+        })
       })
       break
     }
@@ -195,14 +202,16 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
         },
       })
 
-      const { PaymentFailed } = await import('../../../emails/payment-failed')
-      await sendEmail({
-        to: user.email,
-        subject: `Payment failed — ${APP_NAME}`,
-        template: PaymentFailed({
-          name: user.name,
-          updatePaymentUrl: `${APP_URL}${paths.dashboard.billing()}`,
-        }),
+      after(async () => {
+        const { PaymentFailed } = await import('../../../emails/payment-failed')
+        await sendEmail({
+          to: user.email,
+          subject: `Payment failed — ${APP_NAME}`,
+          template: PaymentFailed({
+            name: user.name,
+            updatePaymentUrl: `${APP_URL}${paths.dashboard.billing()}`,
+          }),
+        })
       })
       break
     }

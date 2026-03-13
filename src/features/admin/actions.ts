@@ -456,19 +456,20 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
   })
 
   const role = await prisma.role.findFirst({ where: { id: parsed.data.roleId, deletedAt: null } })
-  const { UserInvitation } = await import('../../../emails/user-invitation')
-  await sendEmail({
-    to: parsed.data.email,
-    subject: `You've been invited to join ${process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation'}`,
-    template: UserInvitation({
-      inviterName: session.user.name,
-      roleName: role?.name ?? 'Member',
-      signUpUrl: `${APP_URL}${paths.auth.signUp(token)}`,
-    }),
-  })
 
   const ip = await getClientIp()
   after(async () => {
+    const { UserInvitation } = await import('../../../emails/user-invitation')
+    await sendEmail({
+      to: parsed.data.email,
+      subject: `You've been invited to join ${process.env.NEXT_PUBLIC_APP_NAME ?? 'ShipStation'}`,
+      template: UserInvitation({
+        inviterName: session.user.name,
+        roleName: role?.name ?? 'Member',
+        signUpUrl: `${APP_URL}${paths.auth.signUp(token)}`,
+      }),
+    })
+
     await logAudit({
       module: Module.Users,
       action: AuditAction.Invited,

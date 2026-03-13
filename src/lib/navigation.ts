@@ -13,6 +13,7 @@ import {
   Users,
   Palette,
   BarChart3,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -57,6 +58,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { title: 'Roles', href: paths.admin.roles(), icon: Shield, permission: 'roles.view' },
       { title: 'Plans', href: paths.admin.plans(), icon: Palette, permission: 'plans.view' },
       { title: 'Settings', href: paths.admin.settings(), icon: Settings, permission: 'settings.view' },
+      { title: 'Audit Logs', href: paths.admin.auditLogs(), icon: ScrollText, permission: 'audits.view' },
     ],
   },
 ]

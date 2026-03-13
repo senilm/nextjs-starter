@@ -7,16 +7,20 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 
 import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { invalidateUserSessions } from '@/lib/rbac'
+import { logAudit, getClientIp } from '@/lib/audit'
+import { Module, AuditAction } from '@/lib/constants'
 import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations'
 import type { RoleWithPermissions, PermissionGroup, ActionResult } from '@/features/roles/types'
 
-async function requireRolePermission(permissionKey: string): Promise<string> {
-  const session = await requirePermission(permissionKey)
-  return session.user.id
+type RoleSession = Awaited<ReturnType<typeof requirePermission>>
+
+async function requireRolePermission(permissionKey: string): Promise<RoleSession> {
+  return requirePermission(permissionKey)
 }
 
 export async function getRoles(): Promise<RoleWithPermissions[]> {
@@ -90,7 +94,7 @@ export async function getAllPermissions(): Promise<PermissionGroup[]> {
 }
 
 export async function createRole(input: unknown): Promise<ActionResult<RoleWithPermissions>> {
-  await requireRolePermission('roles.create')
+  const session = await requireRolePermission('roles.create')
 
   const parsed = createRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -114,6 +118,21 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
     },
   })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Roles,
+      action: AuditAction.Created,
+      recordId: role.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { name: parsed.data.name, permissionKeys: parsed.data.permissionKeys },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/admin/roles')
   return {
     success: true,
@@ -130,13 +149,14 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
 }
 
 export async function updateRole(input: unknown): Promise<ActionResult> {
-  await requireRolePermission('roles.edit')
+  const session = await requireRolePermission('roles.edit')
 
   const parsed = updateRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
 
   const existing = await prisma.role.findFirst({
     where: { id: parsed.data.id, deletedAt: null },
+    include: { rolePermissions: { select: { permissionKey: true } } },
   })
   if (!existing) return { success: false, error: 'Role not found' }
 
@@ -144,6 +164,12 @@ export async function updateRole(input: unknown): Promise<ActionResult> {
     where: { name: parsed.data.name, deletedAt: null, id: { not: parsed.data.id } },
   })
   if (duplicate) return { success: false, error: 'A role with this name already exists' }
+
+  const previousValues = {
+    name: existing.name,
+    description: existing.description,
+    permissionKeys: existing.rolePermissions.map((rp) => rp.permissionKey),
+  }
 
   await prisma.$transaction(async (tx) => {
     const updateData: { description: string | null; name?: string } = {
@@ -171,12 +197,28 @@ export async function updateRole(input: unknown): Promise<ActionResult> {
 
   await Promise.all(affectedUsers.map((u) => invalidateUserSessions(u.id)))
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Roles,
+      action: AuditAction.Updated,
+      recordId: parsed.data.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues,
+      newValues: { name: parsed.data.name, permissionKeys: parsed.data.permissionKeys },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/admin/roles')
   return { success: true }
 }
 
 export async function deleteRole(roleId: string): Promise<ActionResult> {
-  await requireRolePermission('roles.delete')
+  const session = await requireRolePermission('roles.delete')
 
   const role = await prisma.role.findFirst({
     where: { id: roleId, deletedAt: null },
@@ -188,6 +230,21 @@ export async function deleteRole(roleId: string): Promise<ActionResult> {
   if (role._count.users > 0) return { success: false, error: 'Cannot delete a role with assigned users' }
 
   await prisma.role.update({ where: { id: roleId }, data: { deletedAt: new Date() } })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Roles,
+      action: AuditAction.Deleted,
+      recordId: roleId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: { name: role.name, description: role.description },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/roles')
   return { success: true }

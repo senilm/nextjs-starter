@@ -7,9 +7,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 
 import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
+import { logAudit, getClientIp } from '@/lib/audit'
+import { Module, AuditAction } from '@/lib/constants'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ProjectFilters, ProjectsResponse, ActionResult, Project } from '@/features/projects/types'
 
@@ -104,6 +107,21 @@ export async function createProject(input: unknown): Promise<ActionResult<Projec
     },
   })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Projects,
+      action: AuditAction.Created,
+      recordId: project.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { name: parsed.data.name, description: parsed.data.description },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/dashboard/projects')
   revalidatePath('/dashboard')
 
@@ -121,6 +139,8 @@ export async function updateProject(input: unknown): Promise<ActionResult<Projec
   })
   if (!existing) return { success: false, error: 'Project not found' }
 
+  const previousValues = { name: existing.name, description: existing.description, status: existing.status }
+
   const project = await prisma.project.update({
     where: { id: parsed.data.id },
     data: {
@@ -136,6 +156,22 @@ export async function updateProject(input: unknown): Promise<ActionResult<Projec
       createdAt: true,
       updatedAt: true,
     },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Projects,
+      action: AuditAction.Updated,
+      recordId: parsed.data.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues,
+      newValues: { id: parsed.data.id, name: parsed.data.name, description: parsed.data.description, status: parsed.data.status },
+      ipAddress: ip,
+    })
   })
 
   revalidatePath('/dashboard/projects')
@@ -155,6 +191,21 @@ export async function deleteProject(projectId: string): Promise<ActionResult> {
   await prisma.project.update({
     where: { id: projectId },
     data: { deletedAt: new Date() },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Projects,
+      action: AuditAction.Deleted,
+      recordId: projectId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: { name: existing.name, description: existing.description },
+      ipAddress: ip,
+    })
   })
 
   revalidatePath('/dashboard/projects')

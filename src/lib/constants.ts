@@ -10,6 +10,9 @@ export enum Module {
   Roles = 'roles',
   Plans = 'plans',
   Settings = 'settings',
+  Projects = 'projects',
+  Billing = 'billing',
+  Audits = 'audits',
 }
 
 export enum Action {
@@ -18,6 +21,21 @@ export enum Action {
   Create = 'create',
   Edit = 'edit',
   Delete = 'delete',
+  Manage = 'manage',
+}
+
+export enum AuditAction {
+  Created = 'created',
+  Updated = 'updated',
+  Deleted = 'deleted',
+  Suspended = 'suspended',
+  Unsuspended = 'unsuspended',
+  Invited = 'invited',
+  Canceled = 'canceled',
+  Resumed = 'resumed',
+  RoleChanged = 'role_changed',
+  Revoked = 'revoked',
+  Checkout = 'checkout',
 }
 
 /** Type-safe permission key builder */

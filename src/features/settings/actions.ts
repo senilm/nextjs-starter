@@ -8,10 +8,13 @@
 
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 
 import { auth } from '@/lib/auth'
 import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
+import { logAudit, getClientIp } from '@/lib/audit'
+import { Module, AuditAction } from '@/lib/constants'
 import { profileSchema } from '@/features/settings/validations'
 
 interface ActionResult {
@@ -34,9 +37,27 @@ export async function updateProfile(input: unknown): Promise<ActionResult> {
   const parsed = profileSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
 
+  const previousName = session.user.name
+
   await prisma.user.update({
     where: { id: session.user.id },
     data: { name: parsed.data.name },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Settings,
+      action: AuditAction.Updated,
+      recordId: session.user.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: { name: previousName },
+      newValues: { name: parsed.data.name },
+      ipAddress: ip,
+    })
   })
 
   revalidatePath('/dashboard/settings')
@@ -67,6 +88,20 @@ export async function revokeSession(token: string): Promise<ActionResult> {
 
   await auth.api.revokeSession({ headers: reqHeaders, body: { token } })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Settings,
+      action: AuditAction.Revoked,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { type: 'session' },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/dashboard/settings')
   return { success: true }
 }
@@ -77,6 +112,20 @@ export async function revokeAllOtherSessions(): Promise<ActionResult> {
   if (!session) return { success: false, error: 'Unauthorized' }
 
   await auth.api.revokeOtherSessions({ headers: reqHeaders })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Settings,
+      action: AuditAction.Revoked,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { type: 'all_other_sessions' },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/dashboard/settings')
   return { success: true }
@@ -105,6 +154,21 @@ export async function deleteAccount(password: string): Promise<ActionResult> {
   await prisma.user.update({
     where: { id: session.user.id },
     data: { deletedAt: new Date(), isActive: false },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Settings,
+      action: AuditAction.Deleted,
+      recordId: session.user.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { type: 'account_deletion' },
+      ipAddress: ip,
+    })
   })
 
   await auth.api.revokeOtherSessions({ headers: reqHeaders })

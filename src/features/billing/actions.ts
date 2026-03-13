@@ -7,9 +7,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 
 import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
+import { logAudit, getClientIp } from '@/lib/audit'
+import { Module, AuditAction } from '@/lib/constants'
 import { getPaymentProvider, getPaymentProviderName } from '@/lib/payment'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
@@ -34,7 +37,8 @@ export async function getSubscription(): Promise<SubscriptionWithPlan> {
 export async function initiateCheckout(
   input: CheckoutInput,
 ): Promise<ActionResult<CheckoutResult>> {
-  const { user: { id: userId, email, name } } = await requireAuth()
+  const session = await requireAuth()
+  const { id: userId, email, name } = session.user
 
   const plan = await prisma.plan.findUnique({ where: { id: input.planId } })
   if (!plan || !plan.isActive) return { success: false, error: 'Plan not found or inactive' }
@@ -82,13 +86,32 @@ export async function initiateCheckout(
     customer: { email, name },
   })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Billing,
+      action: AuditAction.Checkout,
+      recordId: plan.id,
+      userId,
+      userName: name,
+      userEmail: email,
+      userRole: session.user.role?.name,
+      newValues: { plan: plan.name, interval: input.interval },
+      ipAddress: ip,
+    })
+  })
+
   return { success: true, data: result }
 }
 
 export async function cancelSubscription(): Promise<ActionResult> {
-  const { user: { id: userId } } = await requireAuth()
+  const session = await requireAuth()
+  const userId = session.user.id
 
-  const subscription = await prisma.subscription.findUnique({ where: { userId } })
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId },
+    include: { plan: { select: { name: true } } },
+  })
   if (!subscription?.providerSubscriptionId || !subscription.provider) {
     return { success: false, error: 'No active paid subscription' }
   }
@@ -101,14 +124,33 @@ export async function cancelSubscription(): Promise<ActionResult> {
     data: { cancelAtPeriodEnd: true },
   })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Billing,
+      action: AuditAction.Canceled,
+      recordId: subscription.id,
+      userId,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { plan: subscription.plan.name },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath(paths.dashboard.billing())
   return { success: true }
 }
 
 export async function resumeSubscription(): Promise<ActionResult> {
-  const { user: { id: userId } } = await requireAuth()
+  const session = await requireAuth()
+  const userId = session.user.id
 
-  const subscription = await prisma.subscription.findUnique({ where: { userId } })
+  const subscription = await prisma.subscription.findUnique({
+    where: { userId },
+    include: { plan: { select: { name: true } } },
+  })
   if (!subscription?.providerSubscriptionId || !subscription.provider) {
     return { success: false, error: 'No active paid subscription' }
   }
@@ -123,6 +165,21 @@ export async function resumeSubscription(): Promise<ActionResult> {
   await prisma.subscription.update({
     where: { userId },
     data: { cancelAtPeriodEnd: false },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Billing,
+      action: AuditAction.Resumed,
+      recordId: subscription.id,
+      userId,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { plan: subscription.plan.name },
+      ipAddress: ip,
+    })
   })
 
   revalidatePath(paths.dashboard.billing())

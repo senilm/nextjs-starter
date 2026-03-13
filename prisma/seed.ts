@@ -29,6 +29,13 @@ const PERMISSIONS = [
   { key: perm(Module.Plans, Action.Edit), module: Module.Plans, action: Action.Edit, description: 'Edit plans' },
   { key: perm(Module.Settings, Action.View), module: Module.Settings, action: Action.View, description: 'View system settings' },
   { key: perm(Module.Settings, Action.Edit), module: Module.Settings, action: Action.Edit, description: 'Edit system settings' },
+  { key: perm(Module.Projects, Action.View), module: Module.Projects, action: Action.View, description: 'View projects' },
+  { key: perm(Module.Projects, Action.Create), module: Module.Projects, action: Action.Create, description: 'Create projects' },
+  { key: perm(Module.Projects, Action.Edit), module: Module.Projects, action: Action.Edit, description: 'Edit projects' },
+  { key: perm(Module.Projects, Action.Delete), module: Module.Projects, action: Action.Delete, description: 'Delete projects' },
+  { key: perm(Module.Billing, Action.View), module: Module.Billing, action: Action.View, description: 'View billing' },
+  { key: perm(Module.Billing, Action.Manage), module: Module.Billing, action: Action.Manage, description: 'Manage billing' },
+  { key: perm(Module.Audits, Action.View), module: Module.Audits, action: Action.View, description: 'View audit logs' },
 ]
 
 const PLANS = [

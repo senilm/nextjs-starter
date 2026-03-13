@@ -256,6 +256,30 @@ model Plan {
 }
 
 // ──────────────────────────────────────
+// Audit Logs (Immutable)
+// ──────────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  module         String
+  action         String
+  recordId       String?
+  userId         String
+  userName       String
+  userEmail      String
+  userRole       String?
+  previousValues Json?
+  newValues      Json?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  @@index([module, recordId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ──────────────────────────────────────
 // System Settings (Singleton)
 // ──────────────────────────────────────
 

@@ -7,11 +7,14 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { subDays, subMonths, startOfDay, startOfMonth, format } from 'date-fns'
 
 import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { invalidateUserSessions } from '@/lib/rbac'
+import { logAudit, getClientIp } from '@/lib/audit'
+import { Module, AuditAction } from '@/lib/constants'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
@@ -39,9 +42,10 @@ const CHART_PLAN_COLORS: Record<string, string> = {
 const MONTHS_IN_CHART = 12
 const DAYS_IN_SIGNUPS_CHART = 7
 
-async function requireAdmin(permissionKey: string): Promise<string> {
-  const session = await requirePermission(permissionKey)
-  return session.user.id
+type AdminSession = Awaited<ReturnType<typeof requirePermission>>
+
+async function requireAdmin(permissionKey: string): Promise<AdminSession> {
+  return requirePermission(permissionKey)
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -268,45 +272,112 @@ export async function getUserDetail(userId: string): Promise<UserDetail | null> 
 }
 
 export async function changeUserRole(userId: string, roleId: string): Promise<ActionResult> {
-  const adminId = await requireAdmin('users.edit')
-  if (userId === adminId) return { success: false, error: 'Cannot change your own role' }
+  const session = await requireAdmin('users.edit')
+  if (userId === session.user.id) return { success: false, error: 'Cannot change your own role' }
 
-  const role = await prisma.role.findFirst({ where: { id: roleId, deletedAt: null } })
+  const [targetUser, role] = await Promise.all([
+    prisma.user.findFirst({ where: { id: userId, deletedAt: null }, include: { role: { select: { name: true } } } }),
+    prisma.role.findFirst({ where: { id: roleId, deletedAt: null } }),
+  ])
   if (!role) return { success: false, error: 'Role not found' }
 
   await prisma.user.update({ where: { id: userId }, data: { roleId } })
   await invalidateUserSessions(userId)
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.RoleChanged,
+      recordId: userId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: { role: targetUser?.role?.name },
+      newValues: { role: role.name },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/users')
   return { success: true }
 }
 
 export async function suspendUser(userId: string): Promise<ActionResult> {
-  const adminId = await requireAdmin('users.edit')
-  if (userId === adminId) return { success: false, error: 'Cannot suspend yourself' }
+  const session = await requireAdmin('users.edit')
+  if (userId === session.user.id) return { success: false, error: 'Cannot suspend yourself' }
 
   await prisma.user.update({ where: { id: userId }, data: { isActive: false } })
   await invalidateUserSessions(userId)
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.Suspended,
+      recordId: userId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/users')
   return { success: true }
 }
 
 export async function unsuspendUser(userId: string): Promise<ActionResult> {
-  await requireAdmin('users.edit')
+  const session = await requireAdmin('users.edit')
 
   await prisma.user.update({ where: { id: userId }, data: { isActive: true } })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.Unsuspended,
+      recordId: userId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/users')
   return { success: true }
 }
 
 export async function deleteUser(userId: string): Promise<ActionResult> {
-  const adminId = await requireAdmin('users.delete')
-  if (userId === adminId) return { success: false, error: 'Cannot delete yourself' }
+  const session = await requireAdmin('users.delete')
+  if (userId === session.user.id) return { success: false, error: 'Cannot delete yourself' }
+
+  const targetUser = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: { name: true, email: true },
+  })
 
   await prisma.user.update({ where: { id: userId }, data: { deletedAt: new Date() } })
   await invalidateUserSessions(userId)
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.Deleted,
+      recordId: userId,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: targetUser ? { name: targetUser.name, email: targetUser.email } : undefined,
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/users')
   return { success: true }
@@ -349,6 +420,20 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
     }),
   })
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.Invited,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { email: parsed.data.email, role: role?.name },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/admin/users')
   return { success: true }
 }
@@ -387,10 +472,12 @@ export async function getPlans(): Promise<PlanWithStats[]> {
 }
 
 export async function updatePlan(input: unknown): Promise<ActionResult> {
-  await requireAdmin('plans.edit')
+  const session = await requireAdmin('plans.edit')
 
   const parsed = updatePlanSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+
+  const existing = await prisma.plan.findUnique({ where: { id: parsed.data.id } })
 
   await prisma.plan.update({
     where: { id: parsed.data.id },
@@ -404,6 +491,22 @@ export async function updatePlan(input: unknown): Promise<ActionResult> {
       razorpayPlanId: parsed.data.razorpayPlanId ?? null,
       razorpayYearlyPlanId: parsed.data.razorpayYearlyPlanId ?? null,
     },
+  })
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Plans,
+      action: AuditAction.Updated,
+      recordId: parsed.data.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues: existing ? { name: existing.name, isActive: existing.isActive } : undefined,
+      newValues: { name: parsed.data.name, isActive: parsed.data.isActive },
+      ipAddress: ip,
+    })
   })
 
   revalidatePath('/admin/plans')
@@ -429,12 +532,21 @@ export async function getSystemSettings(): Promise<{
 }
 
 export async function updateSystemSettings(input: unknown): Promise<ActionResult> {
-  await requireAdmin('settings.edit')
+  const session = await requireAdmin('settings.edit')
 
   const parsed = systemSettingsSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
 
   const settings = await prisma.systemSettings.findFirst()
+  const previousValues = settings
+    ? {
+        siteName: settings.siteName,
+        siteUrl: settings.siteUrl,
+        supportEmail: settings.supportEmail,
+        maintenanceMode: settings.maintenanceMode,
+      }
+    : undefined
+
   if (!settings) {
     await prisma.systemSettings.create({
       data: {
@@ -457,6 +569,27 @@ export async function updateSystemSettings(input: unknown): Promise<ActionResult
       },
     })
   }
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Settings,
+      action: AuditAction.Updated,
+      recordId: settings?.id,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      previousValues,
+      newValues: {
+        siteName: parsed.data.siteName,
+        siteUrl: parsed.data.siteUrl,
+        supportEmail: parsed.data.supportEmail,
+        maintenanceMode: parsed.data.maintenanceMode,
+      },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/settings')
   return { success: true }

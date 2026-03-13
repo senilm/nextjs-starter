@@ -83,3 +83,6 @@ export const humanize = (str: string): string =>
 
 export const toDateInputValue = (isoString?: string | null): string =>
   isoString?.split('T')[0] ?? ''
+
+export const capitalize = (str: string): string =>
+  str.charAt(0).toUpperCase() + str.slice(1)

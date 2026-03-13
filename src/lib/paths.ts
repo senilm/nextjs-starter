@@ -39,5 +39,6 @@ export const paths = {
     roles: () => '/admin/roles',
     plans: () => '/admin/plans',
     settings: () => '/admin/settings',
+    auditLogs: () => '/admin/audit-logs',
   },
 }

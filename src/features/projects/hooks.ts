@@ -23,6 +23,7 @@ import type {
   Project,
 } from '@/features/projects/types'
 import type { CreateProjectInput, UpdateProjectInput } from '@/features/projects/validations'
+import { STALE_TIME } from '@/lib/constants'
 
 const PROJECTS_KEY = ['projects'] as const
 
@@ -32,6 +33,7 @@ export function useProjects(
   return useQuery({
     queryKey: [...PROJECTS_KEY, filters],
     queryFn: () => getProjects(filters),
+    staleTime: STALE_TIME.LIST,
   })
 }
 

@@ -10,10 +10,12 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getSubscription } from '@/features/billing/actions'
 import type { SubscriptionWithPlan } from '@/features/billing/types'
+import { STALE_TIME } from '@/lib/constants'
 
 export function useSubscription(): ReturnType<typeof useQuery<SubscriptionWithPlan>> {
   return useQuery({
     queryKey: ['billing', 'subscription'],
     queryFn: getSubscription,
+    staleTime: STALE_TIME.BILLING,
   })
 }

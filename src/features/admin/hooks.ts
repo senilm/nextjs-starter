@@ -39,6 +39,7 @@ import type {
   PlanWithStats,
 } from '@/features/admin/types'
 import type { InviteUserInput, UpdatePlanInput, SystemSettingsInput } from '@/features/admin/validations'
+import { STALE_TIME } from '@/lib/constants'
 
 const ADMIN_KEY = ['admin'] as const
 const USERS_KEY = ['admin', 'users'] as const
@@ -49,6 +50,7 @@ export function useAdminStats(): ReturnType<typeof useQuery<AdminStats>> {
   return useQuery({
     queryKey: [...ADMIN_KEY, 'stats'],
     queryFn: () => getAdminStats(),
+    staleTime: STALE_TIME.ANALYTICS,
   })
 }
 
@@ -56,6 +58,7 @@ export function useRevenueChart(): ReturnType<typeof useQuery<RevenueChartData[]
   return useQuery({
     queryKey: [...ADMIN_KEY, 'revenue-chart'],
     queryFn: () => getRevenueChartData(),
+    staleTime: STALE_TIME.ANALYTICS,
   })
 }
 
@@ -63,6 +66,7 @@ export function useSubscriptionChart(): ReturnType<typeof useQuery<SubscriptionC
   return useQuery({
     queryKey: [...ADMIN_KEY, 'subscription-chart'],
     queryFn: () => getSubscriptionChartData(),
+    staleTime: STALE_TIME.ANALYTICS,
   })
 }
 
@@ -70,6 +74,7 @@ export function useSignupChart(): ReturnType<typeof useQuery<SignupChartData[]>>
   return useQuery({
     queryKey: [...ADMIN_KEY, 'signup-chart'],
     queryFn: () => getSignupChartData(),
+    staleTime: STALE_TIME.ANALYTICS,
   })
 }
 
@@ -77,6 +82,7 @@ export function useUsers(filters: UserFilters): ReturnType<typeof useQuery<Users
   return useQuery({
     queryKey: [...USERS_KEY, filters],
     queryFn: () => getUsers(filters),
+    staleTime: STALE_TIME.LIST,
   })
 }
 
@@ -85,6 +91,7 @@ export function useUserDetail(userId: string | null): ReturnType<typeof useQuery
     queryKey: [...USERS_KEY, 'detail', userId],
     queryFn: () => (userId ? getUserDetail(userId) : null),
     enabled: !!userId,
+    staleTime: STALE_TIME.LIST,
   })
 }
 
@@ -209,6 +216,7 @@ export function usePlans(): ReturnType<typeof useQuery<PlanWithStats[]>> {
   return useQuery({
     queryKey: PLANS_KEY,
     queryFn: () => getPlans(),
+    staleTime: STALE_TIME.STATIC,
   })
 }
 
@@ -244,6 +252,7 @@ export function useSystemSettings(): ReturnType<
   return useQuery({
     queryKey: SETTINGS_KEY,
     queryFn: () => getSystemSettings(),
+    staleTime: STALE_TIME.STATIC,
   })
 }
 

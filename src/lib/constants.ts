@@ -39,6 +39,17 @@ export enum AuditAction {
   BulkDeleted = 'bulk_deleted',
 }
 
+export const STALE_TIME = {
+  /** Charts, stats, aggregations — expensive queries, low freshness need */
+  ANALYTICS: 5 * 60 * 1000,
+  /** Lists with filters — moderate freshness */
+  LIST: 30 * 1000,
+  /** Rarely changing data — roles, permissions, plans */
+  STATIC: 10 * 60 * 1000,
+  /** Subscription/billing — changes infrequently */
+  BILLING: 2 * 60 * 1000,
+} as const
+
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 10,

@@ -21,6 +21,7 @@ import {
 import type { ActionResult } from '@/types/shared'
 import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
 import type { CreateRoleInput, UpdateRoleInput } from '@/features/roles/validations'
+import { STALE_TIME } from '@/lib/constants'
 
 const ROLES_KEY = ['roles'] as const
 
@@ -28,6 +29,7 @@ export function useRoles(): ReturnType<typeof useQuery<RoleWithPermissions[]>> {
   return useQuery({
     queryKey: ROLES_KEY,
     queryFn: () => getRoles(),
+    staleTime: STALE_TIME.STATIC,
   })
 }
 
@@ -36,6 +38,7 @@ export function useRole(roleId: string | null): ReturnType<typeof useQuery<RoleW
     queryKey: [...ROLES_KEY, roleId],
     queryFn: () => (roleId ? getRole(roleId) : null),
     enabled: !!roleId,
+    staleTime: STALE_TIME.STATIC,
   })
 }
 
@@ -43,6 +46,7 @@ export function useAllPermissions(): ReturnType<typeof useQuery<PermissionGroup[
   return useQuery({
     queryKey: ['permissions'],
     queryFn: () => getAllPermissions(),
+    staleTime: STALE_TIME.STATIC,
   })
 }
 

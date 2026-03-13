@@ -102,25 +102,27 @@ export async function getRevenueChartData(): Promise<RevenueChartData[]> {
   await requirePermission('admin.access')
 
   const now = new Date()
-  const data: RevenueChartData[] = []
+  const months = Array.from({ length: MONTHS_IN_CHART }, (_, idx) => {
+    const i = MONTHS_IN_CHART - 1 - idx
+    return {
+      start: startOfMonth(subMonths(now, i)),
+      end: startOfMonth(subMonths(now, i - 1)),
+    }
+  })
 
-  for (let i = MONTHS_IN_CHART - 1; i >= 0; i--) {
-    const monthStart = startOfMonth(subMonths(now, i))
-    const monthEnd = startOfMonth(subMonths(now, i - 1))
+  const results = await Promise.all(
+    months.map(({ start, end }) =>
+      prisma.payment.aggregate({
+        where: { status: 'succeeded', paidAt: { gte: start, lt: end } },
+        _sum: { amount: true },
+      }),
+    ),
+  )
 
-    const payments = await prisma.payment.aggregate({
-      where: {
-        status: 'succeeded',
-        paidAt: { gte: monthStart, lt: monthEnd },
-      },
-      _sum: { amount: true },
-    })
-
-    const revenue = Math.round((payments._sum.amount ?? 0) / 100)
-    data.push({ month: format(monthStart, 'MMM'), revenue })
-  }
-
-  return data
+  return months.map(({ start }, idx) => ({
+    month: format(start, 'MMM'),
+    revenue: Math.round((results[idx]!._sum.amount ?? 0) / 100),
+  }))
 }
 
 export async function getSubscriptionChartData(): Promise<SubscriptionChartData[]> {
@@ -148,20 +150,26 @@ export async function getSignupChartData(): Promise<SignupChartData[]> {
   await requirePermission('admin.access')
 
   const now = new Date()
-  const data: SignupChartData[] = []
+  const days = Array.from({ length: DAYS_IN_SIGNUPS_CHART }, (_, idx) => {
+    const i = DAYS_IN_SIGNUPS_CHART - 1 - idx
+    return {
+      start: startOfDay(subDays(now, i)),
+      end: startOfDay(subDays(now, i - 1)),
+    }
+  })
 
-  for (let i = DAYS_IN_SIGNUPS_CHART - 1; i >= 0; i--) {
-    const dayStart = startOfDay(subDays(now, i))
-    const dayEnd = startOfDay(subDays(now, i - 1))
+  const results = await Promise.all(
+    days.map(({ start, end }) =>
+      prisma.user.count({
+        where: { deletedAt: null, createdAt: { gte: start, lt: end } },
+      }),
+    ),
+  )
 
-    const count = await prisma.user.count({
-      where: { deletedAt: null, createdAt: { gte: dayStart, lt: dayEnd } },
-    })
-
-    data.push({ day: format(dayStart, 'EEE'), signups: count })
-  }
-
-  return data
+  return days.map(({ start }, idx) => ({
+    day: format(start, 'EEE'),
+    signups: results[idx]!,
+  }))
 }
 
 export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
@@ -480,34 +488,30 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
 export async function getPlans(): Promise<PlanWithStats[]> {
   await requirePermission('plans.view')
 
-  const plans = await prisma.plan.findMany({ orderBy: { createdAt: 'asc' } })
+  const plans = await prisma.plan.findMany({
+    orderBy: { createdAt: 'asc' },
+    include: {
+      _count: { select: { subscriptions: { where: { status: 'active' } } } },
+    },
+  })
 
-  const plansWithStats: PlanWithStats[] = await Promise.all(
-    plans.map(async (plan) => {
-      const subscriberCount = await prisma.subscription.count({
-        where: { planId: plan.id, status: 'active' },
-      })
-      return {
-        id: plan.id,
-        key: plan.key,
-        name: plan.name,
-        description: plan.description,
-        monthlyPrice: plan.monthlyPrice,
-        yearlyPrice: plan.yearlyPrice,
-        trialDays: plan.trialDays,
-        limits: plan.limits as Record<string, number>,
-        features: plan.features as string[],
-        stripePriceId: plan.stripePriceId,
-        stripeYearlyPriceId: plan.stripeYearlyPriceId,
-        razorpayPlanId: plan.razorpayPlanId,
-        razorpayYearlyPlanId: plan.razorpayYearlyPlanId,
-        isActive: plan.isActive,
-        subscriberCount,
-      }
-    }),
-  )
-
-  return plansWithStats
+  return plans.map((plan) => ({
+    id: plan.id,
+    key: plan.key,
+    name: plan.name,
+    description: plan.description,
+    monthlyPrice: plan.monthlyPrice,
+    yearlyPrice: plan.yearlyPrice,
+    trialDays: plan.trialDays,
+    limits: plan.limits as Record<string, number>,
+    features: plan.features as string[],
+    stripePriceId: plan.stripePriceId,
+    stripeYearlyPriceId: plan.stripeYearlyPriceId,
+    razorpayPlanId: plan.razorpayPlanId,
+    razorpayYearlyPlanId: plan.razorpayYearlyPlanId,
+    isActive: plan.isActive,
+    subscriberCount: plan._count.subscriptions,
+  }))
 }
 
 export async function updatePlan(input: unknown): Promise<ActionResult> {

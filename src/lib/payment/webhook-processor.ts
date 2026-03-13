@@ -13,6 +13,54 @@ import { sendEmail } from '@/features/email/send'
 import { formatPaymentAmount } from '@/lib/format'
 import type { WebhookResult } from '@/lib/payment/types'
 
+async function createPaymentRecord(
+  userId: string,
+  subscriptionId: string,
+  planId: string,
+  provider: string,
+  result: WebhookResult,
+  status: 'succeeded' | 'failed',
+  interval: string,
+): Promise<void> {
+  await prisma.payment.create({
+    data: {
+      userId,
+      subscriptionId,
+      planId,
+      provider,
+      providerPaymentId: result.providerPaymentId!,
+      amount: status === 'failed' ? (result.amount ?? 0) : result.amount!,
+      currency: result.currency ?? 'usd',
+      status,
+      interval,
+      invoiceUrl: result.invoiceUrl,
+      paidAt: new Date(),
+    },
+  })
+}
+
+async function sendPaymentConfirmation(
+  email: string,
+  name: string,
+  planName: string,
+  amount: number,
+  currency: string,
+  periodEnd: Date | null | undefined,
+): Promise<void> {
+  const { PaymentConfirmation } = await import('../../../emails/payment-confirmation')
+  const nextBillingDate = periodEnd ? format(periodEnd, 'MMMM d, yyyy') : 'N/A'
+  await sendEmail({
+    to: email,
+    subject: `Payment confirmed — ${APP_NAME}`,
+    template: PaymentConfirmation({
+      name,
+      planName,
+      amount: formatPaymentAmount(amount, currency),
+      nextBillingDate,
+    }),
+  })
+}
+
 export async function processWebhookResult(result: WebhookResult): Promise<void> {
   const subscription = await prisma.subscription.findFirst({
     where: { providerSubscriptionId: result.providerSubscriptionId },
@@ -42,39 +90,18 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
       })
 
       if (result.providerPaymentId && result.amount != null) {
-        await prisma.payment.create({
-          data: {
-            userId: user.id,
-            subscriptionId: subscription.id,
-            planId,
-            provider: subscription.provider!,
-            providerPaymentId: result.providerPaymentId,
-            amount: result.amount,
-            currency: result.currency ?? 'usd',
-            status: 'succeeded',
-            interval: result.interval ?? 'monthly',
-            invoiceUrl: result.invoiceUrl,
-            paidAt: new Date(),
-          },
-        })
+        await createPaymentRecord(
+          user.id, subscription.id, planId, subscription.provider!,
+          result, 'succeeded', result.interval ?? 'monthly',
+        )
       }
 
       const plan = await prisma.plan.findUnique({ where: { id: planId } })
       if (plan && result.amount != null) {
-        const { PaymentConfirmation } = await import('../../../emails/payment-confirmation')
-        const nextBillingDate = result.periodEnd
-          ? format(result.periodEnd, 'MMMM d, yyyy')
-          : 'N/A'
-        await sendEmail({
-          to: user.email,
-          subject: `Payment confirmed — ${APP_NAME}`,
-          template: PaymentConfirmation({
-            name: user.name,
-            planName: plan.name,
-            amount: formatPaymentAmount(result.amount, result.currency ?? 'usd'),
-            nextBillingDate,
-          }),
-        })
+        await sendPaymentConfirmation(
+          user.email, user.name, plan.name,
+          result.amount, result.currency ?? 'usd', result.periodEnd,
+        )
       }
       break
     }
@@ -90,39 +117,18 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
       })
 
       if (result.providerPaymentId && result.amount != null) {
-        await prisma.payment.create({
-          data: {
-            userId: user.id,
-            subscriptionId: subscription.id,
-            planId: subscription.planId,
-            provider: subscription.provider!,
-            providerPaymentId: result.providerPaymentId,
-            amount: result.amount,
-            currency: result.currency ?? 'usd',
-            status: 'succeeded',
-            interval: result.interval ?? subscription.interval ?? 'monthly',
-            invoiceUrl: result.invoiceUrl,
-            paidAt: new Date(),
-          },
-        })
+        await createPaymentRecord(
+          user.id, subscription.id, subscription.planId, subscription.provider!,
+          result, 'succeeded', result.interval ?? subscription.interval ?? 'monthly',
+        )
       }
 
-      const plan = await prisma.plan.findUnique({ where: { id: subscription.planId } })
-      if (plan && result.amount != null) {
-        const { PaymentConfirmation } = await import('../../../emails/payment-confirmation')
-        const nextBillingDate = result.periodEnd
-          ? format(result.periodEnd, 'MMMM d, yyyy')
-          : 'N/A'
-        await sendEmail({
-          to: user.email,
-          subject: `Payment confirmed — ${APP_NAME}`,
-          template: PaymentConfirmation({
-            name: user.name,
-            planName: plan.name,
-            amount: formatPaymentAmount(result.amount, result.currency ?? 'usd'),
-            nextBillingDate,
-          }),
-        })
+      const renewedPlan = await prisma.plan.findUnique({ where: { id: subscription.planId } })
+      if (renewedPlan && result.amount != null) {
+        await sendPaymentConfirmation(
+          user.email, user.name, renewedPlan.name,
+          result.amount, result.currency ?? 'usd', result.periodEnd,
+        )
       }
       break
     }
@@ -166,21 +172,10 @@ export async function processWebhookResult(result: WebhookResult): Promise<void>
       if (!freePlan) break
 
       if (result.providerPaymentId) {
-        await prisma.payment.create({
-          data: {
-            userId: user.id,
-            subscriptionId: subscription.id,
-            planId: subscription.planId,
-            provider: subscription.provider!,
-            providerPaymentId: result.providerPaymentId,
-            amount: result.amount ?? 0,
-            currency: result.currency ?? 'usd',
-            status: 'failed',
-            interval: result.interval ?? subscription.interval ?? 'monthly',
-            invoiceUrl: result.invoiceUrl,
-            paidAt: new Date(),
-          },
-        })
+        await createPaymentRecord(
+          user.id, subscription.id, subscription.planId, subscription.provider!,
+          result, 'failed', result.interval ?? subscription.interval ?? 'monthly',
+        )
       }
 
       await prisma.subscription.update({

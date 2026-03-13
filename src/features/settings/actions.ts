@@ -16,6 +16,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction } from '@/lib/constants'
+import { parseInput } from '@/lib/zod-presets'
 import { profileSchema } from '@/features/settings/validations'
 
 
@@ -31,8 +32,8 @@ interface SessionInfo {
 export async function updateProfile(input: unknown): Promise<ActionResult> {
   const session = await requireAuth()
 
-  const parsed = profileSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(profileSchema, input)
+  if (!parsed.success) return parsed
 
   const previousName = session.user.name
 

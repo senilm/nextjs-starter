@@ -18,6 +18,7 @@ import { Module, AuditAction, PAGINATION } from '@/lib/constants'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
+import { parseInput } from '@/lib/zod-presets'
 import { inviteUserSchema, updatePlanSchema, systemSettingsSchema } from '@/features/admin/validations'
 import type { ActionResult } from '@/types/shared'
 import type {
@@ -424,8 +425,8 @@ export async function bulkDeleteUsers(userIds: string[]): Promise<ActionResult> 
 export async function inviteUser(input: unknown): Promise<ActionResult> {
   const session = await requirePermission('users.create')
 
-  const parsed = inviteUserSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(inviteUserSchema, input)
+  if (!parsed.success) return parsed
 
   const existing = await prisma.user.findFirst({
     where: { email: parsed.data.email, deletedAt: null },
@@ -512,8 +513,8 @@ export async function getPlans(): Promise<PlanWithStats[]> {
 export async function updatePlan(input: unknown): Promise<ActionResult> {
   const session = await requirePermission('plans.edit')
 
-  const parsed = updatePlanSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(updatePlanSchema, input)
+  if (!parsed.success) return parsed
 
   const existing = await prisma.plan.findUnique({ where: { id: parsed.data.id } })
 
@@ -572,8 +573,8 @@ export async function getSystemSettings(): Promise<{
 export async function updateSystemSettings(input: unknown): Promise<ActionResult> {
   const session = await requirePermission('settings.edit')
 
-  const parsed = systemSettingsSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(systemSettingsSchema, input)
+  if (!parsed.success) return parsed
 
   const settings = await prisma.systemSettings.findFirst()
   const previousValues = settings

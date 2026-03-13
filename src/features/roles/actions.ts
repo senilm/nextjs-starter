@@ -14,6 +14,7 @@ import { prisma } from '@/lib/prisma'
 import { invalidateUserSessions } from '@/lib/rbac'
 import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction } from '@/lib/constants'
+import { parseInput } from '@/lib/zod-presets'
 import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations'
 import type { ActionResult } from '@/types/shared'
 import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
@@ -92,8 +93,8 @@ export async function getAllPermissions(): Promise<PermissionGroup[]> {
 export async function createRole(input: unknown): Promise<ActionResult<RoleWithPermissions>> {
   const session = await requirePermission('roles.create')
 
-  const parsed = createRoleSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(createRoleSchema, input)
+  if (!parsed.success) return parsed
 
   const existing = await prisma.role.findFirst({
     where: { name: parsed.data.name, deletedAt: null },
@@ -147,8 +148,8 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
 export async function updateRole(input: unknown): Promise<ActionResult> {
   const session = await requirePermission('roles.edit')
 
-  const parsed = updateRoleSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(updateRoleSchema, input)
+  if (!parsed.success) return parsed
 
   const existing = await prisma.role.findFirst({
     where: { id: parsed.data.id, deletedAt: null },

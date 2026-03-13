@@ -13,6 +13,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction, PAGINATION } from '@/lib/constants'
+import { parseInput } from '@/lib/zod-presets'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ActionResult } from '@/types/shared'
 import type { ProjectFilters, ProjectsResponse, Project } from '@/features/projects/types'
@@ -68,8 +69,8 @@ export async function getProjects(filters: ProjectFilters = {}): Promise<Project
 export async function createProject(input: unknown): Promise<ActionResult<Project>> {
   const session = await requireAuth()
 
-  const parsed = createProjectSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(createProjectSchema, input)
+  if (!parsed.success) return parsed
 
   const subscription = await prisma.subscription.findUnique({
     where: { userId: session.user.id },
@@ -130,8 +131,8 @@ export async function createProject(input: unknown): Promise<ActionResult<Projec
 export async function updateProject(input: unknown): Promise<ActionResult<Project>> {
   const session = await requireAuth()
 
-  const parsed = updateProjectSchema.safeParse(input)
-  if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  const parsed = parseInput(updateProjectSchema, input)
+  if (!parsed.success) return parsed
 
   const existing = await prisma.project.findFirst({
     where: { id: parsed.data.id, userId: session.user.id, deletedAt: null },

@@ -4,7 +4,9 @@
  * Reusable Zod schema fragments — single source of truth for common field validations.
  */
 
-import { z } from 'zod/v3'
+import { z, type ZodSchema } from 'zod/v3'
+
+import type { ActionResult } from '@/types/shared'
 
 export const emailSchema = z.string().email('Please enter a valid email address')
 
@@ -20,3 +22,15 @@ export const nameSchema = (max = 50): z.ZodString =>
     .string()
     .min(2, 'Name must be at least 2 characters')
     .max(max, `Name must be ${max} characters or fewer`)
+
+/** Parse input with a Zod schema, returning ActionResult on failure */
+export function parseInput<T>(
+  schema: ZodSchema<T>,
+  input: unknown,
+): { success: true; data: T } | { success: false; error: string } {
+  const parsed = schema.safeParse(input)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  }
+  return { success: true, data: parsed.data }
+}

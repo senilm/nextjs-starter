@@ -12,7 +12,6 @@ import { FolderKanban } from 'lucide-react'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
-import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { PageShell } from '@/components/shared/page-shell'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ViewToggle } from '@/components/shared/view-toggle'
@@ -21,9 +20,9 @@ import { ProjectCard } from '@/features/projects/components/project-card'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { useProjects, useDeleteProject } from '@/features/projects/hooks'
+import { useProjects } from '@/features/projects/hooks'
 import { getProjectColumns } from '@/features/projects/components/project-columns'
-import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/features/projects/types'
+import { PROJECT_STATUSES, type ProjectStatus } from '@/features/projects/types'
 import { VIEW_MODE, type ViewMode } from '@/types/data-table'
 
 const STATUS_FILTER_OPTIONS = PROJECT_STATUSES.map((s) => ({
@@ -43,11 +42,9 @@ const FILTER_FIELDS: FilterField[] = [
 
 export const ProjectsList = (): React.ReactNode => {
   const { openDialog } = useDialogStore()
-  const deleteProjectMutation = useDeleteProject()
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.LIST)
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
-  const [deleteProject, setDeleteProject] = useState<Project | null>(null)
   const { page, limit, setPage, setLimit, resetPage } = usePagination()
 
   const debouncedSearch = useDebounce(search)
@@ -66,9 +63,9 @@ export const ProjectsList = (): React.ReactNode => {
     () =>
       getProjectColumns({
         onEdit: (project) => openDialog(DIALOG_KEY.EDIT_PROJECT, project),
-        onDelete: (project) => setDeleteProject(project),
+        onDelete: (project) => openDialog(DIALOG_KEY.DELETE_PROJECT, { id: project.id, name: project.name }),
       }),
-    [],
+    [openDialog],
   )
 
   const handleSearchChange = (value: string): void => {
@@ -117,7 +114,7 @@ export const ProjectsList = (): React.ReactNode => {
               project={project}
               index={data?.projects.indexOf(project) ?? 0}
               onEdit={(p) => openDialog(DIALOG_KEY.EDIT_PROJECT, p)}
-              onDelete={(p) => setDeleteProject(p)}
+              onDelete={(p) => openDialog(DIALOG_KEY.DELETE_PROJECT, { id: p.id, name: p.name })}
             />
           )}
           pagination={
@@ -148,21 +145,6 @@ export const ProjectsList = (): React.ReactNode => {
           )}
         />
       )}
-
-      <ConfirmDialog
-        open={!!deleteProject}
-        onOpenChange={(open) => !open && setDeleteProject(null)}
-        title="Delete project"
-        description={`Are you sure you want to delete "${deleteProject?.name}"? This action can be undone by an administrator.`}
-        confirmLabel="Delete"
-        variant="destructive"
-        onConfirm={async () => {
-          if (!deleteProject) return
-          await deleteProjectMutation.mutateAsync(deleteProject.id)
-          setDeleteProject(null)
-        }}
-        isLoading={deleteProjectMutation.isPending}
-      />
     </PageShell>
   )
 }

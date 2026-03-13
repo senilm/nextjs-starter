@@ -6,7 +6,6 @@
 
 'use client'
 
-import { useState } from 'react'
 import { Plus, Pencil, Trash2, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,6 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 import { usePermission } from '@/hooks/use-permission'
 import { useRoles } from '@/features/roles/hooks'
-import { DeleteRoleDialog } from '@/features/roles/components/delete-role-dialog'
 import type { RoleWithPermissions } from '@/features/roles/types'
 
 export const RolesList = (): React.ReactNode => {
@@ -29,7 +27,6 @@ export const RolesList = (): React.ReactNode => {
 
   const { openDialog } = useDialogStore()
   const { data: roles, isLoading } = useRoles()
-  const [deleteRole, setDeleteRole] = useState<RoleWithPermissions | null>(null)
 
   const handleEdit = (role: RoleWithPermissions): void => {
     openDialog(DIALOG_KEY.EDIT_ROLE, role)
@@ -92,7 +89,12 @@ export const RolesList = (): React.ReactNode => {
                           </Button>
                         )}
                         {canDelete && !role.isSystem && (
-                          <Button variant="ghost" size="icon" className="size-8" onClick={() => setDeleteRole(role)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            onClick={() => openDialog(DIALOG_KEY.DELETE_ROLE, role)}
+                          >
                             <Trash2 className="size-4 text-destructive" />
                           </Button>
                         )}
@@ -105,8 +107,6 @@ export const RolesList = (): React.ReactNode => {
           </div>
         )}
       </LoadingTransition>
-
-      <DeleteRoleDialog role={deleteRole} open={!!deleteRole} onOpenChange={(open) => !open && setDeleteRole(null)} />
     </div>
   )
 }

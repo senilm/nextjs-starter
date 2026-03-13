@@ -19,17 +19,9 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { usePermission } from '@/hooks/use-permission'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
-import {
-  useUsers,
-  useChangeUserRole,
-  useSuspendUser,
-  useUnsuspendUser,
-  useDeleteUser,
-} from '@/features/admin/hooks'
+import { useUsers } from '@/features/admin/hooks'
 import { getUserColumns } from '@/features/admin/components/user-columns'
-import { UserActionDialogs } from '@/features/admin/components/user-action-dialogs'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { UserDetailSheet } from '@/features/admin/components/user-detail-sheet'
 import { getRoles } from '@/features/roles/actions'
 import type { UserFilters } from '@/features/admin/types'
 
@@ -47,13 +39,6 @@ export const UserManagement = (): React.ReactNode => {
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const { openDialog } = useDialogStore()
-  const [detailUserId, setDetailUserId] = useState<string | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
-  const [suspendUserId, setSuspendUserId] = useState<string | null>(null)
-  const [unsuspendUserId, setUnsuspendUserId] = useState<string | null>(null)
-  const [changeRoleUserId, setChangeRoleUserId] = useState<string | null>(null)
-  const [selectedRoleId, setSelectedRoleId] = useState('')
 
   const debouncedSearch = useDebounce(search)
   const { data: roles } = useQuery({ queryKey: ['roles'], queryFn: () => getRoles() })
@@ -90,26 +75,19 @@ export const UserManagement = (): React.ReactNode => {
   }
 
   const { data, isLoading, refetch, isRefetching } = useUsers(filters)
-  const deleteMutation = useDeleteUser()
-  const suspendMutation = useSuspendUser()
-  const unsuspendMutation = useUnsuspendUser()
-  const changeRoleMutation = useChangeUserRole()
 
   const columns = useMemo(
     () =>
       getUserColumns({
-        onViewDetail: (id) => {
-          setDetailUserId(id)
-          setDetailOpen(true)
-        },
-        onChangeRole: (id) => setChangeRoleUserId(id),
-        onSuspend: (id) => setSuspendUserId(id),
-        onUnsuspend: (id) => setUnsuspendUserId(id),
-        onDelete: (id) => setDeleteUserId(id),
+        onViewDetail: (id) => openDialog(DIALOG_KEY.USER_DETAIL, id),
+        onChangeRole: (id) => openDialog(DIALOG_KEY.CHANGE_USER_ROLE, id),
+        onSuspend: (id) => openDialog(DIALOG_KEY.SUSPEND_USER, id),
+        onUnsuspend: (id) => openDialog(DIALOG_KEY.UNSUSPEND_USER, id),
+        onDelete: (id) => openDialog(DIALOG_KEY.DELETE_USER, id),
         canEdit,
         canDelete,
       }),
-    [canEdit, canDelete],
+    [canEdit, canDelete, openDialog],
   )
 
   const handleSearchChange = (value: string): void => {
@@ -175,26 +153,6 @@ export const UserManagement = (): React.ReactNode => {
             />
           </DataTableToolbar>
         )}
-      />
-
-      <UserDetailSheet userId={detailUserId} open={detailOpen} onOpenChange={setDetailOpen} />
-
-      <UserActionDialogs
-        deleteUserId={deleteUserId}
-        setDeleteUserId={setDeleteUserId}
-        deleteMutation={deleteMutation}
-        suspendUserId={suspendUserId}
-        setSuspendUserId={setSuspendUserId}
-        suspendMutation={suspendMutation}
-        unsuspendUserId={unsuspendUserId}
-        setUnsuspendUserId={setUnsuspendUserId}
-        unsuspendMutation={unsuspendMutation}
-        changeRoleUserId={changeRoleUserId}
-        setChangeRoleUserId={setChangeRoleUserId}
-        selectedRoleId={selectedRoleId}
-        setSelectedRoleId={setSelectedRoleId}
-        changeRoleMutation={changeRoleMutation}
-        roles={roles}
       />
     </div>
   )

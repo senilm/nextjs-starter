@@ -14,6 +14,13 @@ export const DIALOG_KEY = {
   CREATE_ROLE: 'createRole',
   EDIT_ROLE: 'editRole',
   EDIT_PLAN: 'editPlan',
+  DELETE_ROLE: 'deleteRole',
+  DELETE_USER: 'deleteUser',
+  SUSPEND_USER: 'suspendUser',
+  UNSUSPEND_USER: 'unsuspendUser',
+  CHANGE_USER_ROLE: 'changeUserRole',
+  USER_DETAIL: 'userDetail',
+  DELETE_PROJECT: 'deleteProject',
 } as const
 
 type DialogKey = (typeof DIALOG_KEY)[keyof typeof DIALOG_KEY]

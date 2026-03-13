@@ -18,14 +18,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { useDeleteRole } from '@/features/roles/hooks'
 import type { RoleWithPermissions } from '@/features/roles/types'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 
-interface DeleteRoleDialogProps {
-  role: RoleWithPermissions | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogProps): React.ReactNode => {
+export const DeleteRoleDialog = (): React.ReactNode => {
+  const { openDialogs, closeDialog, getDialogData } = useDialogStore()
+  const isOpen = openDialogs[DIALOG_KEY.DELETE_ROLE] ?? false
+  const role = getDialogData<RoleWithPermissions>(DIALOG_KEY.DELETE_ROLE)
   const deleteMutation = useDeleteRole()
 
   const isBlocked = role?.isSystem || (role?.userCount ?? 0) > 0
@@ -38,11 +36,11 @@ export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogP
   const handleDelete = async (): Promise<void> => {
     if (!role || isBlocked) return
     const result = await deleteMutation.mutateAsync(role.id)
-    if (result.success) onOpenChange(false)
+    if (result.success) closeDialog(DIALOG_KEY.DELETE_ROLE)
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={(o) => !deleteMutation.isPending && onOpenChange(o)}>
+    <AlertDialog open={isOpen} onOpenChange={(o) => !deleteMutation.isPending && !o && closeDialog(DIALOG_KEY.DELETE_ROLE)}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Role</AlertDialogTitle>

@@ -20,6 +20,7 @@ import {
   suspendUser,
   unsuspendUser,
   deleteUser,
+  bulkDeleteUsers,
   inviteUser,
   getPlans,
   updatePlan,
@@ -161,6 +162,26 @@ export function useDeleteUser(): ReturnType<typeof useMutation<ActionResult, Err
     onError: () => {
       void queryClient.invalidateQueries({ queryKey: USERS_KEY })
       toast.error('Failed to delete user')
+    },
+  })
+}
+
+export function useBulkDeleteUsers(): ReturnType<typeof useMutation<ActionResult, Error, string[]>> {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteUsers(ids),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success('Users deleted')
+        void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      } else {
+        toast.error(result.error ?? 'Failed to delete users')
+      }
+    },
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: USERS_KEY })
+      toast.error('Failed to delete users')
     },
   })
 }

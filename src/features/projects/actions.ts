@@ -162,3 +162,31 @@ export async function deleteProject(projectId: string): Promise<ActionResult> {
 
   return { success: true }
 }
+
+export async function bulkDeleteProjects(projectIds: string[]): Promise<ActionResult> {
+  const session = await requireAuth()
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const count = await tx.project.count({
+        where: { id: { in: projectIds }, userId: session.user.id, deletedAt: null },
+      })
+
+      if (count !== projectIds.length) {
+        throw new Error('One or more projects not found')
+      }
+
+      await tx.project.updateMany({
+        where: { id: { in: projectIds }, userId: session.user.id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      })
+    })
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete projects' }
+  }
+
+  revalidatePath('/dashboard/projects')
+  revalidatePath('/dashboard')
+
+  return { success: true }
+}

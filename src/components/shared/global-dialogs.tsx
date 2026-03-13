@@ -10,7 +10,7 @@
 import { lazy, Suspense } from 'react'
 
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { usePermission } from '@/hooks/use-permission'
+import { usePermissions } from '@/hooks/use-permission'
 import type { Project } from '@/features/projects/types'
 import type { RoleWithPermissions } from '@/features/roles/types'
 import type { PlanWithStats } from '@/features/admin/types'
@@ -89,14 +89,16 @@ const EditPlanDialog = lazy(() =>
 
 export const GlobalDialogs = (): React.ReactNode => {
   const { openDialogs, dialogData, closeDialog } = useDialogStore()
-  const canInviteUser = usePermission('users.create')
-  const canEditUser = usePermission('users.edit')
-  const canDeleteUser = usePermission('users.delete')
-  const canViewUser = usePermission('users.view')
-  const canCreateRole = usePermission('roles.create')
-  const canEditRole = usePermission('roles.edit')
-  const canDeleteRole = usePermission('roles.delete')
-  const canEditPlan = usePermission('plans.edit')
+  const perms = usePermissions([
+    'users.create',
+    'users.edit',
+    'users.delete',
+    'users.view',
+    'roles.create',
+    'roles.edit',
+    'roles.delete',
+    'plans.edit',
+  ])
 
   return (
     <Suspense>
@@ -117,37 +119,37 @@ export const GlobalDialogs = (): React.ReactNode => {
       {openDialogs[DIALOG_KEY.DELETE_PROJECT] && <DeleteProjectDialog />}
 
       {/* User dialogs */}
-      {canInviteUser && openDialogs[DIALOG_KEY.INVITE_USER] && (
+      {perms['users.create'] && openDialogs[DIALOG_KEY.INVITE_USER] && (
         <InviteUserDialog
           open
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.INVITE_USER)}
         />
       )}
-      {canDeleteUser && openDialogs[DIALOG_KEY.DELETE_USER] && <DeleteUserDialog />}
-      {canEditUser && openDialogs[DIALOG_KEY.SUSPEND_USER] && <SuspendUserDialog />}
-      {canEditUser && openDialogs[DIALOG_KEY.UNSUSPEND_USER] && <UnsuspendUserDialog />}
-      {canEditUser && openDialogs[DIALOG_KEY.CHANGE_USER_ROLE] && <ChangeUserRoleDialog />}
-      {canViewUser && openDialogs[DIALOG_KEY.USER_DETAIL] && <UserDetailSheet />}
+      {perms['users.delete'] && openDialogs[DIALOG_KEY.DELETE_USER] && <DeleteUserDialog />}
+      {perms['users.edit'] && openDialogs[DIALOG_KEY.SUSPEND_USER] && <SuspendUserDialog />}
+      {perms['users.edit'] && openDialogs[DIALOG_KEY.UNSUSPEND_USER] && <UnsuspendUserDialog />}
+      {perms['users.edit'] && openDialogs[DIALOG_KEY.CHANGE_USER_ROLE] && <ChangeUserRoleDialog />}
+      {perms['users.view'] && openDialogs[DIALOG_KEY.USER_DETAIL] && <UserDetailSheet />}
 
       {/* Role dialogs */}
-      {canCreateRole && openDialogs[DIALOG_KEY.CREATE_ROLE] && (
+      {perms['roles.create'] && openDialogs[DIALOG_KEY.CREATE_ROLE] && (
         <RoleFormDialog
           open
           role={null}
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.CREATE_ROLE)}
         />
       )}
-      {canEditRole && openDialogs[DIALOG_KEY.EDIT_ROLE] && (
+      {perms['roles.edit'] && openDialogs[DIALOG_KEY.EDIT_ROLE] && (
         <RoleFormDialog
           open
           role={(dialogData[DIALOG_KEY.EDIT_ROLE] as RoleWithPermissions) ?? null}
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.EDIT_ROLE)}
         />
       )}
-      {canDeleteRole && openDialogs[DIALOG_KEY.DELETE_ROLE] && <DeleteRoleDialog />}
+      {perms['roles.delete'] && openDialogs[DIALOG_KEY.DELETE_ROLE] && <DeleteRoleDialog />}
 
       {/* Plan dialogs */}
-      {canEditPlan && openDialogs[DIALOG_KEY.EDIT_PLAN] && (
+      {perms['plans.edit'] && openDialogs[DIALOG_KEY.EDIT_PLAN] && (
         <EditPlanDialog
           open
           plan={(dialogData[DIALOG_KEY.EDIT_PLAN] as PlanWithStats) ?? null}

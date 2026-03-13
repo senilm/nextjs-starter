@@ -14,7 +14,7 @@ import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { invalidateUserSessions } from '@/lib/rbac'
 import { logAudit, getClientIp } from '@/lib/audit'
-import { Module, AuditAction } from '@/lib/constants'
+import { Module, AuditAction, PAGINATION } from '@/lib/constants'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
@@ -31,9 +31,6 @@ import type {
   PlanWithStats,
 } from '@/features/admin/types'
 
-const DEFAULT_PAGE = 1
-const DEFAULT_LIMIT = 10
-const MAX_LIMIT = 100
 const CHART_PLAN_COLORS: Record<string, string> = {
   free: 'hsl(var(--chart-1))',
   pro: 'hsl(var(--chart-2))',
@@ -174,8 +171,8 @@ export async function getSignupChartData(): Promise<SignupChartData[]> {
 export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
   await requireAdmin('users.view')
 
-  const page = filters.page ?? DEFAULT_PAGE
-  const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+  const page = filters.page ?? PAGINATION.DEFAULT_PAGE
+  const limit = Math.min(filters.limit ?? PAGINATION.DEFAULT_LIMIT, PAGINATION.MAX_LIMIT)
   const skip = (page - 1) * limit
 
   const where = {

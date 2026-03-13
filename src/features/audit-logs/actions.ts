@@ -9,13 +9,10 @@
 import { requirePermission } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/lib/rbac'
-import { Module, Action, perm } from '@/lib/constants'
+import { Module, Action, perm, PAGINATION } from '@/lib/constants'
 import { auditLogFiltersSchema } from '@/features/audit-logs/validations'
 import type { AuditLogFilters, AuditLogsResponse, AuditLogEntry } from '@/features/audit-logs/types'
 
-const DEFAULT_PAGE = 1
-const DEFAULT_LIMIT = 10
-const EXPORT_MAX_LIMIT = 10_000
 
 /** Get modules the user is allowed to view audit logs for */
 async function getAllowedModules(userId: string): Promise<string[]> {
@@ -32,8 +29,8 @@ export async function getAuditLogs(filters: AuditLogFilters = {}): Promise<Audit
   const allowedModules = await getAllowedModules(session.user.id)
   if (allowedModules.length === 0) return { logs: [], total: 0, page: 1, totalPages: 0 }
 
-  const page = parsed.data.page ?? DEFAULT_PAGE
-  const limit = parsed.data.limit ?? DEFAULT_LIMIT
+  const page = parsed.data.page ?? PAGINATION.DEFAULT_PAGE
+  const limit = parsed.data.limit ?? PAGINATION.DEFAULT_LIMIT
   const skip = (page - 1) * limit
 
   const where = buildWhereClause(parsed.data, allowedModules)
@@ -84,7 +81,7 @@ export async function exportAuditLogs(
   const logs = await prisma.auditLog.findMany({
     where,
     orderBy: { createdAt: 'desc' },
-    take: EXPORT_MAX_LIMIT,
+    take: PAGINATION.EXPORT_MAX_LIMIT,
   })
 
   return logs as AuditLogEntry[]

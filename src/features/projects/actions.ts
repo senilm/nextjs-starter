@@ -12,19 +12,17 @@ import { after } from 'next/server'
 import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
 import { logAudit, getClientIp } from '@/lib/audit'
-import { Module, AuditAction } from '@/lib/constants'
+import { Module, AuditAction, PAGINATION } from '@/lib/constants'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
 import type { ActionResult } from '@/types/shared'
 import type { ProjectFilters, ProjectsResponse, Project } from '@/features/projects/types'
 
-const DEFAULT_PAGE = 1
-const DEFAULT_LIMIT = 10
 
 export async function getProjects(filters: ProjectFilters = {}): Promise<ProjectsResponse> {
   const session = await requireAuth()
 
-  const page = filters.page ?? DEFAULT_PAGE
-  const limit = filters.limit ?? DEFAULT_LIMIT
+  const page = filters.page ?? PAGINATION.DEFAULT_PAGE
+  const limit = filters.limit ?? PAGINATION.DEFAULT_LIMIT
   const skip = (page - 1) * limit
 
   const where = {

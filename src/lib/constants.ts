@@ -39,6 +39,13 @@ export enum AuditAction {
   BulkDeleted = 'bulk_deleted',
 }
 
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 100,
+  EXPORT_MAX_LIMIT: 10_000,
+} as const
+
 /** Type-safe permission key builder */
 export function perm(module: Module, action: Action): string {
   return `${module}.${action}`

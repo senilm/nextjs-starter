@@ -18,14 +18,9 @@ import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations
 import type { ActionResult } from '@/types/shared'
 import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
 
-type RoleSession = Awaited<ReturnType<typeof requirePermission>>
-
-async function requireRolePermission(permissionKey: string): Promise<RoleSession> {
-  return requirePermission(permissionKey)
-}
 
 export async function getRoles(): Promise<RoleWithPermissions[]> {
-  await requireRolePermission('roles.view')
+  await requirePermission('roles.view')
 
   const roles = await prisma.role.findMany({
     where: { deletedAt: null },
@@ -48,7 +43,7 @@ export async function getRoles(): Promise<RoleWithPermissions[]> {
 }
 
 export async function getRole(roleId: string): Promise<RoleWithPermissions | null> {
-  await requireRolePermission('roles.view')
+  await requirePermission('roles.view')
 
   const role = await prisma.role.findFirst({
     where: { id: roleId, deletedAt: null },
@@ -72,7 +67,7 @@ export async function getRole(roleId: string): Promise<RoleWithPermissions | nul
 }
 
 export async function getAllPermissions(): Promise<PermissionGroup[]> {
-  await requireRolePermission('roles.view')
+  await requirePermission('roles.view')
 
   const permissions = await prisma.permission.findMany({
     orderBy: [{ module: 'asc' }, { action: 'asc' }],
@@ -95,7 +90,7 @@ export async function getAllPermissions(): Promise<PermissionGroup[]> {
 }
 
 export async function createRole(input: unknown): Promise<ActionResult<RoleWithPermissions>> {
-  const session = await requireRolePermission('roles.create')
+  const session = await requirePermission('roles.create')
 
   const parsed = createRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -150,7 +145,7 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
 }
 
 export async function updateRole(input: unknown): Promise<ActionResult> {
-  const session = await requireRolePermission('roles.edit')
+  const session = await requirePermission('roles.edit')
 
   const parsed = updateRoleSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -219,7 +214,7 @@ export async function updateRole(input: unknown): Promise<ActionResult> {
 }
 
 export async function deleteRole(roleId: string): Promise<ActionResult> {
-  const session = await requireRolePermission('roles.delete')
+  const session = await requirePermission('roles.delete')
 
   const role = await prisma.role.findFirst({
     where: { id: roleId, deletedAt: null },
@@ -252,7 +247,7 @@ export async function deleteRole(roleId: string): Promise<ActionResult> {
 }
 
 export async function bulkDeleteRoles(roleIds: string[]): Promise<ActionResult> {
-  const session = await requireRolePermission('roles.delete')
+  const session = await requirePermission('roles.delete')
 
   try {
     await prisma.$transaction(async (tx) => {

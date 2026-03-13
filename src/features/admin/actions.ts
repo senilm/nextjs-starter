@@ -39,14 +39,9 @@ const CHART_PLAN_COLORS: Record<string, string> = {
 const MONTHS_IN_CHART = 12
 const DAYS_IN_SIGNUPS_CHART = 7
 
-type AdminSession = Awaited<ReturnType<typeof requirePermission>>
-
-async function requireAdmin(permissionKey: string): Promise<AdminSession> {
-  return requirePermission(permissionKey)
-}
 
 export async function getAdminStats(): Promise<AdminStats> {
-  await requireAdmin('admin.access')
+  await requirePermission('admin.access')
 
   const now = new Date()
   const sevenDaysAgo = subDays(now, DAYS_IN_SIGNUPS_CHART)
@@ -103,7 +98,7 @@ export async function getAdminStats(): Promise<AdminStats> {
 }
 
 export async function getRevenueChartData(): Promise<RevenueChartData[]> {
-  await requireAdmin('admin.access')
+  await requirePermission('admin.access')
 
   const now = new Date()
   const data: RevenueChartData[] = []
@@ -128,7 +123,7 @@ export async function getRevenueChartData(): Promise<RevenueChartData[]> {
 }
 
 export async function getSubscriptionChartData(): Promise<SubscriptionChartData[]> {
-  await requireAdmin('admin.access')
+  await requirePermission('admin.access')
 
   const subscriptions = await prisma.subscription.findMany({
     where: { status: 'active' },
@@ -149,7 +144,7 @@ export async function getSubscriptionChartData(): Promise<SubscriptionChartData[
 }
 
 export async function getSignupChartData(): Promise<SignupChartData[]> {
-  await requireAdmin('admin.access')
+  await requirePermission('admin.access')
 
   const now = new Date()
   const data: SignupChartData[] = []
@@ -169,7 +164,7 @@ export async function getSignupChartData(): Promise<SignupChartData[]> {
 }
 
 export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse> {
-  await requireAdmin('users.view')
+  await requirePermission('users.view')
 
   const page = filters.page ?? PAGINATION.DEFAULT_PAGE
   const limit = Math.min(filters.limit ?? PAGINATION.DEFAULT_LIMIT, PAGINATION.MAX_LIMIT)
@@ -228,7 +223,7 @@ export async function getUsers(filters: UserFilters = {}): Promise<UsersResponse
 }
 
 export async function getUserDetail(userId: string): Promise<UserDetail | null> {
-  await requireAdmin('users.view')
+  await requirePermission('users.view')
 
   const user = await prisma.user.findFirst({
     where: { id: userId, deletedAt: null },
@@ -269,7 +264,7 @@ export async function getUserDetail(userId: string): Promise<UserDetail | null> 
 }
 
 export async function changeUserRole(userId: string, roleId: string): Promise<ActionResult> {
-  const session = await requireAdmin('users.edit')
+  const session = await requirePermission('users.edit')
   if (userId === session.user.id) return { success: false, error: 'Cannot change your own role' }
 
   const [targetUser, role] = await Promise.all([
@@ -302,7 +297,7 @@ export async function changeUserRole(userId: string, roleId: string): Promise<Ac
 }
 
 export async function suspendUser(userId: string): Promise<ActionResult> {
-  const session = await requireAdmin('users.edit')
+  const session = await requirePermission('users.edit')
   if (userId === session.user.id) return { success: false, error: 'Cannot suspend yourself' }
 
   await prisma.user.update({ where: { id: userId }, data: { isActive: false } })
@@ -327,7 +322,7 @@ export async function suspendUser(userId: string): Promise<ActionResult> {
 }
 
 export async function unsuspendUser(userId: string): Promise<ActionResult> {
-  const session = await requireAdmin('users.edit')
+  const session = await requirePermission('users.edit')
 
   await prisma.user.update({ where: { id: userId }, data: { isActive: true } })
 
@@ -350,7 +345,7 @@ export async function unsuspendUser(userId: string): Promise<ActionResult> {
 }
 
 export async function deleteUser(userId: string): Promise<ActionResult> {
-  const session = await requireAdmin('users.delete')
+  const session = await requirePermission('users.delete')
   if (userId === session.user.id) return { success: false, error: 'Cannot delete yourself' }
 
   const targetUser = await prisma.user.findFirst({
@@ -381,7 +376,7 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
 }
 
 export async function bulkDeleteUsers(userIds: string[]): Promise<ActionResult> {
-  const session = await requireAdmin('users.delete')
+  const session = await requirePermission('users.delete')
 
   if (userIds.includes(session.user.id)) {
     return { success: false, error: 'Cannot include yourself in bulk delete' }
@@ -482,7 +477,7 @@ export async function inviteUser(input: unknown): Promise<ActionResult> {
 }
 
 export async function getPlans(): Promise<PlanWithStats[]> {
-  await requireAdmin('plans.view')
+  await requirePermission('plans.view')
 
   const plans = await prisma.plan.findMany({ orderBy: { createdAt: 'asc' } })
 
@@ -515,7 +510,7 @@ export async function getPlans(): Promise<PlanWithStats[]> {
 }
 
 export async function updatePlan(input: unknown): Promise<ActionResult> {
-  const session = await requireAdmin('plans.edit')
+  const session = await requirePermission('plans.edit')
 
   const parsed = updatePlanSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }
@@ -564,7 +559,7 @@ export async function getSystemSettings(): Promise<{
   announcementBar: string | null
   maintenanceMode: boolean
 }> {
-  await requireAdmin('settings.view')
+  await requirePermission('settings.view')
 
   const settings = await prisma.systemSettings.findFirst()
   if (!settings) {
@@ -575,7 +570,7 @@ export async function getSystemSettings(): Promise<{
 }
 
 export async function updateSystemSettings(input: unknown): Promise<ActionResult> {
-  const session = await requireAdmin('settings.edit')
+  const session = await requirePermission('settings.edit')
 
   const parsed = systemSettingsSchema.safeParse(input)
   if (!parsed.success) return { success: false, error: parsed.error.errors[0]?.message ?? 'Invalid input' }

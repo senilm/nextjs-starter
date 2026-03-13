@@ -384,9 +384,9 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
 }
 
 export async function bulkDeleteUsers(userIds: string[]): Promise<ActionResult> {
-  const adminId = await requireAdmin('users.delete')
+  const session = await requireAdmin('users.delete')
 
-  if (userIds.includes(adminId)) {
+  if (userIds.includes(session.user.id)) {
     return { success: false, error: 'Cannot include yourself in bulk delete' }
   }
 
@@ -410,6 +410,20 @@ export async function bulkDeleteUsers(userIds: string[]): Promise<ActionResult> 
   }
 
   await Promise.all(userIds.map((id) => invalidateUserSessions(id)))
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Users,
+      action: AuditAction.BulkDeleted,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { userIds, count: userIds.length },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/users')
   return { success: true }

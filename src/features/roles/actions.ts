@@ -251,7 +251,7 @@ export async function deleteRole(roleId: string): Promise<ActionResult> {
 }
 
 export async function bulkDeleteRoles(roleIds: string[]): Promise<ActionResult> {
-  await requireRolePermission('roles.delete')
+  const session = await requireRolePermission('roles.delete')
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -282,6 +282,20 @@ export async function bulkDeleteRoles(roleIds: string[]): Promise<ActionResult> 
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to delete roles' }
   }
+
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Roles,
+      action: AuditAction.BulkDeleted,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { roleIds, count: roleIds.length },
+      ipAddress: ip,
+    })
+  })
 
   revalidatePath('/admin/roles')
   return { success: true }

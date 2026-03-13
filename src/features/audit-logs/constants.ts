@@ -25,4 +25,5 @@ export const ACTION_BADGE_MAP: Record<string, ActionBadgeConfig> = {
   [AuditAction.RoleChanged]: { variant: 'warning', label: 'Role Changed' },
   [AuditAction.Revoked]: { variant: 'destructive', label: 'Revoked' },
   [AuditAction.Checkout]: { variant: 'info', label: 'Checkout' },
+  [AuditAction.BulkDeleted]: { variant: 'destructive', label: 'Bulk Deleted' },
 }

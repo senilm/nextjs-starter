@@ -236,6 +236,20 @@ export async function bulkDeleteProjects(projectIds: string[]): Promise<ActionRe
     return { success: false, error: error instanceof Error ? error.message : 'Failed to delete projects' }
   }
 
+  const ip = await getClientIp()
+  after(async () => {
+    await logAudit({
+      module: Module.Projects,
+      action: AuditAction.BulkDeleted,
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
+      userRole: session.user.role?.name,
+      newValues: { projectIds, count: projectIds.length },
+      ipAddress: ip,
+    })
+  })
+
   revalidatePath('/dashboard/projects')
   revalidatePath('/dashboard')
 

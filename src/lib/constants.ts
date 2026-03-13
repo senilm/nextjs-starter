@@ -36,6 +36,7 @@ export enum AuditAction {
   RoleChanged = 'role_changed',
   Revoked = 'revoked',
   Checkout = 'checkout',
+  BulkDeleted = 'bulk_deleted',
 }
 
 /** Type-safe permission key builder */

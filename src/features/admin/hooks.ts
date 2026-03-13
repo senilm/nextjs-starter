@@ -27,6 +27,7 @@ import {
   getSystemSettings,
   updateSystemSettings,
 } from '@/features/admin/actions'
+import type { ActionResult } from '@/types/shared'
 import type {
   AdminStats,
   RevenueChartData,
@@ -36,7 +37,6 @@ import type {
   UsersResponse,
   UserDetail,
   PlanWithStats,
-  ActionResult,
 } from '@/features/admin/types'
 import type { InviteUserInput, UpdatePlanInput, SystemSettingsInput } from '@/features/admin/validations'
 

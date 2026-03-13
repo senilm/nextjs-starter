@@ -18,7 +18,8 @@ import {
   deleteRole,
   bulkDeleteRoles,
 } from '@/features/roles/actions'
-import type { RoleWithPermissions, PermissionGroup, ActionResult } from '@/features/roles/types'
+import type { ActionResult } from '@/types/shared'
+import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
 import type { CreateRoleInput, UpdateRoleInput } from '@/features/roles/validations'
 
 const ROLES_KEY = ['roles'] as const

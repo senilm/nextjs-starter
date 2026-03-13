@@ -10,6 +10,7 @@ import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 
+import type { ActionResult } from '@/types/shared'
 import { auth } from '@/lib/auth'
 import { requireAuth } from '@/lib/auth-guard'
 import { prisma } from '@/lib/prisma'
@@ -17,10 +18,6 @@ import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction } from '@/lib/constants'
 import { profileSchema } from '@/features/settings/validations'
 
-interface ActionResult {
-  success: boolean
-  error?: string
-}
 
 interface SessionInfo {
   id: string

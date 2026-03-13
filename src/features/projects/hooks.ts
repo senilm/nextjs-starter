@@ -16,11 +16,11 @@ import {
   deleteProject,
   bulkDeleteProjects,
 } from '@/features/projects/actions'
+import type { ActionResult } from '@/types/shared'
 import type {
   ProjectFilters,
   ProjectsResponse,
   Project,
-  ActionResult,
 } from '@/features/projects/types'
 import type { CreateProjectInput, UpdateProjectInput } from '@/features/projects/validations'
 

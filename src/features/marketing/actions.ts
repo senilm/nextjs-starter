@@ -8,6 +8,7 @@
 
 import { headers } from 'next/headers'
 
+import type { ActionResult } from '@/types/shared'
 import { contactFormSchema, type ContactFormValues } from '@/features/marketing/validations'
 
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
@@ -32,10 +33,6 @@ const checkRateLimit = (ip: string): boolean => {
   return true
 }
 
-interface ActionResult {
-  success: boolean
-  error?: string
-}
 
 export const submitContactForm = async (
   values: ContactFormValues,

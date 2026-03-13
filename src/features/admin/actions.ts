@@ -19,6 +19,7 @@ import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
 import { sendEmail } from '@/features/email/send'
 import { inviteUserSchema, updatePlanSchema, systemSettingsSchema } from '@/features/admin/validations'
+import type { ActionResult } from '@/types/shared'
 import type {
   AdminStats,
   RevenueChartData,
@@ -28,7 +29,6 @@ import type {
   UsersResponse,
   UserDetail,
   PlanWithStats,
-  ActionResult,
 } from '@/features/admin/types'
 
 const DEFAULT_PAGE = 1

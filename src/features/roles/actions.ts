@@ -15,7 +15,8 @@ import { invalidateUserSessions } from '@/lib/rbac'
 import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction } from '@/lib/constants'
 import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations'
-import type { RoleWithPermissions, PermissionGroup, ActionResult } from '@/features/roles/types'
+import type { ActionResult } from '@/types/shared'
+import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
 
 type RoleSession = Awaited<ReturnType<typeof requirePermission>>
 

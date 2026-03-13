@@ -16,10 +16,10 @@ import { Module, AuditAction } from '@/lib/constants'
 import { getPaymentProvider, getPaymentProviderName } from '@/lib/payment'
 import { APP_URL } from '@/lib/config'
 import { paths } from '@/lib/paths'
+import type { ActionResult } from '@/types/shared'
 import type {
   SubscriptionWithPlan,
   CheckoutInput,
-  ActionResult,
   PaymentWithPlan,
 } from '@/features/billing/types'
 import type { CheckoutResult, PaymentProviderName } from '@/lib/payment/types'

@@ -14,7 +14,8 @@ import { prisma } from '@/lib/prisma'
 import { logAudit, getClientIp } from '@/lib/audit'
 import { Module, AuditAction } from '@/lib/constants'
 import { createProjectSchema, updateProjectSchema } from '@/features/projects/validations'
-import type { ProjectFilters, ProjectsResponse, ActionResult, Project } from '@/features/projects/types'
+import type { ActionResult } from '@/types/shared'
+import type { ProjectFilters, ProjectsResponse, Project } from '@/features/projects/types'
 
 const DEFAULT_PAGE = 1
 const DEFAULT_LIMIT = 10

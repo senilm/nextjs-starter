@@ -19,6 +19,27 @@ import { createRoleSchema, updateRoleSchema } from '@/features/roles/validations
 import type { ActionResult } from '@/types/shared'
 import type { RoleWithPermissions, PermissionGroup } from '@/features/roles/types'
 
+type RoleEntity = {
+  id: string
+  name: string
+  description: string | null
+  isSystem: boolean
+  createdAt: Date
+  rolePermissions: { permission: { key: string } }[]
+  _count: { users: number }
+}
+
+function toRoleWithPermissions(role: RoleEntity): RoleWithPermissions {
+  return {
+    id: role.id,
+    name: role.name,
+    description: role.description,
+    isSystem: role.isSystem,
+    userCount: role._count.users,
+    permissionKeys: role.rolePermissions.map((rp) => rp.permission.key),
+    createdAt: role.createdAt,
+  }
+}
 
 export async function getRoles(): Promise<RoleWithPermissions[]> {
   await requirePermission('roles.view')
@@ -32,15 +53,7 @@ export async function getRoles(): Promise<RoleWithPermissions[]> {
     orderBy: { createdAt: 'asc' },
   })
 
-  return roles.map((role) => ({
-    id: role.id,
-    name: role.name,
-    description: role.description,
-    isSystem: role.isSystem,
-    userCount: role._count.users,
-    permissionKeys: role.rolePermissions.map((rp) => rp.permission.key),
-    createdAt: role.createdAt,
-  }))
+  return roles.map(toRoleWithPermissions)
 }
 
 export async function getRole(roleId: string): Promise<RoleWithPermissions | null> {
@@ -56,15 +69,7 @@ export async function getRole(roleId: string): Promise<RoleWithPermissions | nul
 
   if (!role) return null
 
-  return {
-    id: role.id,
-    name: role.name,
-    description: role.description,
-    isSystem: role.isSystem,
-    userCount: role._count.users,
-    permissionKeys: role.rolePermissions.map((rp) => rp.permission.key),
-    createdAt: role.createdAt,
-  }
+  return toRoleWithPermissions(role)
 }
 
 export async function getAllPermissions(): Promise<PermissionGroup[]> {
@@ -133,15 +138,7 @@ export async function createRole(input: unknown): Promise<ActionResult<RoleWithP
   revalidatePath('/admin/roles')
   return {
     success: true,
-    data: {
-      id: role.id,
-      name: role.name,
-      description: role.description,
-      isSystem: role.isSystem,
-      userCount: role._count.users,
-      permissionKeys: role.rolePermissions.map((rp) => rp.permission.key),
-      createdAt: role.createdAt,
-    },
+    data: toRoleWithPermissions(role),
   }
 }
 

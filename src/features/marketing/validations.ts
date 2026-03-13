@@ -6,12 +6,11 @@
 
 import { z } from 'zod/v3'
 
+import { emailSchema, nameSchema } from '@/lib/zod-presets'
+
 export const contactFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(100, 'Name must be under 100 characters'),
-  email: z.string().email('Please enter a valid email address'),
+  name: nameSchema(100),
+  email: emailSchema,
   message: z
     .string()
     .min(10, 'Message must be at least 10 characters')

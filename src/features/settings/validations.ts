@@ -6,11 +6,10 @@
 
 import { z } from 'zod/v3'
 
+import { passwordSchema, nameSchema } from '@/lib/zod-presets'
+
 export const profileSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(50, 'Name must be 50 characters or fewer'),
+  name: nameSchema(),
 })
 
 export type ProfileInput = z.infer<typeof profileSchema>
@@ -18,12 +17,7 @@ export type ProfileInput = z.infer<typeof profileSchema>
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-z]/, 'Must contain a lowercase letter')
-      .regex(/[A-Z]/, 'Must contain an uppercase letter')
-      .regex(/[0-9]/, 'Must contain a number'),
+    newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword !== data.currentPassword, {

@@ -6,37 +6,26 @@
 
 import { z } from 'zod/v3'
 
+import { emailSchema, passwordSchema, nameSchema } from '@/lib/zod-presets'
+
 export const signUpSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(50, 'Name must be at most 50 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain a lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-    .regex(/[0-9]/, 'Password must contain a number'),
+  name: nameSchema(),
+  email: emailSchema,
+  password: passwordSchema,
 })
 
 export const signInSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: emailSchema,
   password: z.string().min(1, 'Password is required'),
 })
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: emailSchema,
 })
 
 export const resetPasswordSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-z]/, 'Password must contain a lowercase letter')
-      .regex(/[A-Z]/, 'Password must contain an uppercase letter')
-      .regex(/[0-9]/, 'Password must contain a number'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -45,7 +34,7 @@ export const resetPasswordSchema = z
   })
 
 export const magicLinkSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: emailSchema,
 })
 
 export type SignUpInput = z.infer<typeof signUpSchema>

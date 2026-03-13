@@ -11,14 +11,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -36,6 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { DialogShell, DialogBody, DialogFooter } from '@/components/shared/dialog-shell'
 import { useUpdateProject } from '@/features/projects/hooks'
 import { updateProjectSchema, type UpdateProjectInput } from '@/features/projects/validations'
 import { PROJECT_STATUSES, type Project } from '@/features/projects/types'
@@ -78,14 +71,10 @@ export const EditProjectDialog = ({ project, open, onOpenChange }: EditProjectDi
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Project</DialogTitle>
-          <DialogDescription>Update project details and status.</DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <DialogShell open={open} onOpenChange={onOpenChange} title="Edit Project" description="Update project details and status.">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <DialogBody className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -136,17 +125,17 @@ export const EditProjectDialog = ({ project, open, onOpenChange }: EditProjectDi
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={updateProjectMutation.isPending}>
-                Save changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={updateProjectMutation.isPending}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogShell>
   )
 }

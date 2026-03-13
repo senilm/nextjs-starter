@@ -12,20 +12,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { DialogShell, DialogBody, DialogFooter } from '@/components/shared/dialog-shell'
 import { useUpdatePlan } from '@/features/admin/hooks'
 import { updatePlanSchema, type UpdatePlanInput } from '@/features/admin/validations'
 import type { PlanWithStats } from '@/features/admin/types'
@@ -97,15 +90,16 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Edit Plan</DialogTitle>
-          <DialogDescription>Update plan details, features, and provider price IDs.</DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <DialogShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Plan"
+      description="Update plan details, features, and provider price IDs."
+      className="sm:max-w-lg"
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <DialogBody className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -238,18 +232,18 @@ export const EditPlanDialog = ({ plan, open, onOpenChange }: EditPlanDialogProps
                 </FormItem>
               )}
             />
+          </DialogBody>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={updateMutation.isPending}>
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={updateMutation.isPending}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogShell>
   )
 }

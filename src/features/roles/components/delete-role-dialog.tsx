@@ -6,16 +6,8 @@
 
 'use client'
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { DialogShell, DialogFooter } from '@/components/shared/dialog-shell'
 import { useDeleteRole } from '@/features/roles/hooks'
 import type { RoleWithPermissions } from '@/features/roles/types'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
@@ -39,30 +31,31 @@ export const DeleteRoleDialog = (): React.ReactNode => {
     if (result.success) closeDialog(DIALOG_KEY.DELETE_ROLE)
   }
 
+  const description = isBlocked
+    ? blockReason ?? ''
+    : `Are you sure you want to delete "${role?.name}"? This action cannot be undone.`
+
   return (
-    <AlertDialog open={isOpen} onOpenChange={(o) => !deleteMutation.isPending && !o && closeDialog(DIALOG_KEY.DELETE_ROLE)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Role</AlertDialogTitle>
-          <AlertDialogDescription>
-            {isBlocked
-              ? blockReason
-              : `Are you sure you want to delete "${role?.name}"? This action cannot be undone.`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
-          {!isBlocked && (
-            <Button
-              variant="destructive"
-              loading={deleteMutation.isPending}
-              onClick={() => void handleDelete()}
-            >
-              Delete
-            </Button>
-          )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DialogShell
+      open={isOpen}
+      onOpenChange={(o) => !deleteMutation.isPending && !o && closeDialog(DIALOG_KEY.DELETE_ROLE)}
+      title="Delete Role"
+      description={description}
+    >
+      <DialogFooter>
+        <Button variant="outline" disabled={deleteMutation.isPending} onClick={() => closeDialog(DIALOG_KEY.DELETE_ROLE)}>
+          Cancel
+        </Button>
+        {!isBlocked && (
+          <Button
+            variant="destructive"
+            loading={deleteMutation.isPending}
+            onClick={() => void handleDelete()}
+          >
+            Delete
+          </Button>
+        )}
+      </DialogFooter>
+    </DialogShell>
   )
 }

@@ -10,15 +10,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DialogShell, DialogBody, DialogFooter } from '@/components/shared/dialog-shell'
 import { useChangeUserRole } from '@/features/admin/hooks'
 import { getRoles } from '@/features/roles/actions'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
@@ -43,12 +36,13 @@ export const ChangeUserRoleDialog = (): React.ReactNode => {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && !changeRoleMutation.isPending && handleClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Change Role</DialogTitle>
-          <DialogDescription>Select a new role for this user.</DialogDescription>
-        </DialogHeader>
+    <DialogShell
+      open={isOpen}
+      onOpenChange={(open) => !open && !changeRoleMutation.isPending && handleClose()}
+      title="Change Role"
+      description="Select a new role for this user."
+    >
+      <DialogBody>
         <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
           <SelectTrigger>
             <SelectValue placeholder="Select a role" />
@@ -61,19 +55,19 @@ export const ChangeUserRoleDialog = (): React.ReactNode => {
             ))}
           </SelectContent>
         </Select>
-        <DialogFooter>
-          <Button variant="outline" disabled={changeRoleMutation.isPending} onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            disabled={!selectedRoleId}
-            loading={changeRoleMutation.isPending}
-            onClick={() => void handleChangeRole()}
-          >
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </DialogBody>
+      <DialogFooter>
+        <Button variant="outline" disabled={changeRoleMutation.isPending} onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button
+          disabled={!selectedRoleId}
+          loading={changeRoleMutation.isPending}
+          onClick={() => void handleChangeRole()}
+        >
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogShell>
   )
 }

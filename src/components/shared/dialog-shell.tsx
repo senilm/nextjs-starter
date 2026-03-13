@@ -1,7 +1,8 @@
 /**
- * @file form-dialog.tsx
- * @module components/shared/form-dialog
- * Standardized dialog layout for form dialogs — shell, body, and footer.
+ * @file dialog-shell.tsx
+ * @module components/shared/dialog-shell
+ * Standardized dialog layout — shell with bordered header/footer, padded body.
+ * Used by all dialogs across the app for visual consistency.
  */
 
 'use client'
@@ -9,54 +10,60 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
-interface FormDialogShellProps {
+interface DialogShellProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
+  description?: string
   children: React.ReactNode
   className?: string
 }
 
-export const FormDialogShell = ({
+export const DialogShell = ({
   open,
   onOpenChange,
   title,
+  description,
   children,
   className,
-}: FormDialogShellProps): React.ReactNode => (
+}: DialogShellProps): React.ReactNode => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className={cn('gap-0 p-0', className)} showCloseButton={false}>
       <DialogHeader className="border-b px-6 pt-6 pb-4">
         <DialogTitle>{title}</DialogTitle>
+        {description && <DialogDescription>{description}</DialogDescription>}
       </DialogHeader>
       {children}
     </DialogContent>
   </Dialog>
 )
 
-interface FormDialogBodyProps {
+interface DialogBodyProps {
   children: React.ReactNode
   className?: string
 }
 
-export const FormDialogBody = ({
+export const DialogBody = ({
   children,
   className,
-}: FormDialogBodyProps): React.ReactNode => (
+}: DialogBodyProps): React.ReactNode => (
   <div className={cn('px-6 py-6', className)}>{children}</div>
 )
 
-interface FormDialogFooterProps {
+interface DialogFooterProps {
   children: React.ReactNode
+  className?: string
 }
 
-export const FormDialogFooter = ({
+export const DialogFooter = ({
   children,
-}: FormDialogFooterProps): React.ReactNode => (
-  <div className="flex justify-end gap-2 border-t px-6 py-4">{children}</div>
+  className,
+}: DialogFooterProps): React.ReactNode => (
+  <div className={cn('flex justify-end gap-2 border-t px-6 py-4', className)}>{children}</div>
 )

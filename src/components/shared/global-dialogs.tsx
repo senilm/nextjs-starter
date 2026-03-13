@@ -27,15 +27,57 @@ const EditProjectDialog = lazy(() =>
   })),
 )
 
+const DeleteProjectDialog = lazy(() =>
+  import('@/features/projects/components/delete-project-dialog').then((m) => ({
+    default: m.DeleteProjectDialog,
+  })),
+)
+
 const InviteUserDialog = lazy(() =>
   import('@/features/admin/components/invite-user-dialog').then((m) => ({
     default: m.InviteUserDialog,
   })),
 )
 
+const DeleteUserDialog = lazy(() =>
+  import('@/features/admin/components/delete-user-dialog').then((m) => ({
+    default: m.DeleteUserDialog,
+  })),
+)
+
+const SuspendUserDialog = lazy(() =>
+  import('@/features/admin/components/suspend-user-dialog').then((m) => ({
+    default: m.SuspendUserDialog,
+  })),
+)
+
+const UnsuspendUserDialog = lazy(() =>
+  import('@/features/admin/components/unsuspend-user-dialog').then((m) => ({
+    default: m.UnsuspendUserDialog,
+  })),
+)
+
+const ChangeUserRoleDialog = lazy(() =>
+  import('@/features/admin/components/change-user-role-dialog').then((m) => ({
+    default: m.ChangeUserRoleDialog,
+  })),
+)
+
+const UserDetailSheet = lazy(() =>
+  import('@/features/admin/components/user-detail-sheet').then((m) => ({
+    default: m.UserDetailSheet,
+  })),
+)
+
 const RoleFormDialog = lazy(() =>
   import('@/features/roles/components/role-form-dialog').then((m) => ({
     default: m.RoleFormDialog,
+  })),
+)
+
+const DeleteRoleDialog = lazy(() =>
+  import('@/features/roles/components/delete-role-dialog').then((m) => ({
+    default: m.DeleteRoleDialog,
   })),
 )
 
@@ -48,12 +90,17 @@ const EditPlanDialog = lazy(() =>
 export const GlobalDialogs = (): React.ReactNode => {
   const { openDialogs, dialogData, closeDialog } = useDialogStore()
   const canInviteUser = usePermission('users.create')
+  const canEditUser = usePermission('users.edit')
+  const canDeleteUser = usePermission('users.delete')
+  const canViewUser = usePermission('users.view')
   const canCreateRole = usePermission('roles.create')
   const canEditRole = usePermission('roles.edit')
+  const canDeleteRole = usePermission('roles.delete')
   const canEditPlan = usePermission('plans.edit')
 
   return (
     <Suspense>
+      {/* Project dialogs */}
       {openDialogs[DIALOG_KEY.CREATE_PROJECT] && (
         <CreateProjectDialog
           open
@@ -67,12 +114,22 @@ export const GlobalDialogs = (): React.ReactNode => {
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.EDIT_PROJECT)}
         />
       )}
+      {openDialogs[DIALOG_KEY.DELETE_PROJECT] && <DeleteProjectDialog />}
+
+      {/* User dialogs */}
       {canInviteUser && openDialogs[DIALOG_KEY.INVITE_USER] && (
         <InviteUserDialog
           open
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.INVITE_USER)}
         />
       )}
+      {canDeleteUser && openDialogs[DIALOG_KEY.DELETE_USER] && <DeleteUserDialog />}
+      {canEditUser && openDialogs[DIALOG_KEY.SUSPEND_USER] && <SuspendUserDialog />}
+      {canEditUser && openDialogs[DIALOG_KEY.UNSUSPEND_USER] && <UnsuspendUserDialog />}
+      {canEditUser && openDialogs[DIALOG_KEY.CHANGE_USER_ROLE] && <ChangeUserRoleDialog />}
+      {canViewUser && openDialogs[DIALOG_KEY.USER_DETAIL] && <UserDetailSheet />}
+
+      {/* Role dialogs */}
       {canCreateRole && openDialogs[DIALOG_KEY.CREATE_ROLE] && (
         <RoleFormDialog
           open
@@ -87,6 +144,9 @@ export const GlobalDialogs = (): React.ReactNode => {
           onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.EDIT_ROLE)}
         />
       )}
+      {canDeleteRole && openDialogs[DIALOG_KEY.DELETE_ROLE] && <DeleteRoleDialog />}
+
+      {/* Plan dialogs */}
       {canEditPlan && openDialogs[DIALOG_KEY.EDIT_PLAN] && (
         <EditPlanDialog
           open

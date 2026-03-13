@@ -17,17 +17,6 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import {
   Form,
   FormControl,
   FormField,
@@ -35,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { DialogShell, DialogBody, DialogFooter } from '@/components/shared/dialog-shell'
 import { paths } from '@/lib/paths'
 import { deleteAccount } from '@/features/settings/actions'
 import { deleteAccountSchema, type DeleteAccountInput } from '@/features/settings/validations'
@@ -67,20 +57,19 @@ export const DeleteAccount = (): React.ReactNode => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">Delete account</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will deactivate your account and you will lose access to all projects and data. Type{' '}
-                <strong>DELETE</strong> to confirm.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Button variant="destructive" onClick={() => setOpen(true)}>
+          Delete account
+        </Button>
+
+        <DialogShell
+          open={open}
+          onOpenChange={setOpen}
+          title="Are you absolutely sure?"
+          description="This will deactivate your account and you will lose access to all projects and data. Type DELETE to confirm."
+        >
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <DialogBody className="space-y-4">
                 <FormField
                   control={form.control}
                   name="password"
@@ -107,20 +96,22 @@ export const DeleteAccount = (): React.ReactNode => {
                     </FormItem>
                   )}
                 />
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    type="submit"
-                    disabled={form.formState.isSubmitting}
-                    className="bg-destructive text-white hover:bg-destructive/90"
-                  >
-                    {form.formState.isSubmitting ? 'Deleting...' : 'Delete my account'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </form>
-            </Form>
-          </AlertDialogContent>
-        </AlertDialog>
+              </DialogBody>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  loading={form.formState.isSubmitting}
+                >
+                  Delete my account
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogShell>
       </CardContent>
     </Card>
   )

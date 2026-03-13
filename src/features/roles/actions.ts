@@ -249,3 +249,40 @@ export async function deleteRole(roleId: string): Promise<ActionResult> {
   revalidatePath('/admin/roles')
   return { success: true }
 }
+
+export async function bulkDeleteRoles(roleIds: string[]): Promise<ActionResult> {
+  await requireRolePermission('roles.delete')
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const roles = await tx.role.findMany({
+        where: { id: { in: roleIds }, deletedAt: null },
+        include: { _count: { select: { users: { where: { deletedAt: null } } } } },
+      })
+
+      if (roles.length !== roleIds.length) {
+        throw new Error('One or more roles not found')
+      }
+
+      const systemRole = roles.find((r) => r.isSystem)
+      if (systemRole) {
+        throw new Error(`Cannot delete system role "${systemRole.name}"`)
+      }
+
+      const roleWithUsers = roles.find((r) => r._count.users > 0)
+      if (roleWithUsers) {
+        throw new Error(`Role "${roleWithUsers.name}" has assigned users`)
+      }
+
+      await tx.role.updateMany({
+        where: { id: { in: roleIds }, deletedAt: null },
+        data: { deletedAt: new Date() },
+      })
+    })
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete roles' }
+  }
+
+  revalidatePath('/admin/roles')
+  return { success: true }
+}

@@ -11,17 +11,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DialogShell, DialogBody, DialogFooter } from '@/components/shared/dialog-shell'
 import { useInviteUser } from '@/features/admin/hooks'
 import { inviteUserSchema, type InviteUserInput } from '@/features/admin/validations'
 import { getRoles } from '@/features/roles/actions'
@@ -49,15 +42,10 @@ export const InviteUserDialog = ({ open, onOpenChange }: InviteUserDialogProps):
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Invite User</DialogTitle>
-          <DialogDescription>Send an invitation email with a role assignment.</DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <DialogShell open={open} onOpenChange={onOpenChange} title="Invite User" description="Send an invitation email with a role assignment.">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <DialogBody className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -96,18 +84,18 @@ export const InviteUserDialog = ({ open, onOpenChange }: InviteUserDialogProps):
                 </FormItem>
               )}
             />
+          </DialogBody>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={inviteMutation.isPending}>
-                Send Invitation
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={inviteMutation.isPending}>
+              Send Invitation
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogShell>
   )
 }

@@ -1,12 +1,13 @@
 /**
  * @file user-management.tsx
  * @module features/admin/components/user-management
- * Admin user management container — filters, table, action dialogs.
+ * Admin user management container — filters, table, bulk delete, action dialogs.
  */
 
 'use client'
 
 import { useState, useMemo } from 'react'
+import type { RowSelectionState } from '@tanstack/react-table'
 import { UserPlus, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
@@ -14,24 +15,19 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
+import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions'
+import { getSelectColumn } from '@/components/data-table/data-table-select-column'
 import { PageHeader } from '@/components/shared/page-header'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { usePermission } from '@/hooks/use-permission'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
-import {
-  useUsers,
-  useChangeUserRole,
-  useSuspendUser,
-  useUnsuspendUser,
-  useDeleteUser,
-} from '@/features/admin/hooks'
+import { useUsers, useBulkDeleteUsers } from '@/features/admin/hooks'
 import { getUserColumns } from '@/features/admin/components/user-columns'
-import { UserActionDialogs } from '@/features/admin/components/user-action-dialogs'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { UserDetailSheet } from '@/features/admin/components/user-detail-sheet'
 import { getRoles } from '@/features/roles/actions'
-import type { UserFilters } from '@/features/admin/types'
+import type { UserFilters, UserWithRole } from '@/features/admin/types'
 
 const STATUS_FILTER_OPTIONS = [
   { label: 'Active', value: 'active' },
@@ -46,14 +42,11 @@ export const UserManagement = (): React.ReactNode => {
   const { page, limit, setPage, setLimit, resetPage } = usePagination()
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const { openDialog } = useDialogStore()
-  const [detailUserId, setDetailUserId] = useState<string | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
-  const [suspendUserId, setSuspendUserId] = useState<string | null>(null)
-  const [unsuspendUserId, setUnsuspendUserId] = useState<string | null>(null)
-  const [changeRoleUserId, setChangeRoleUserId] = useState<string | null>(null)
-  const [selectedRoleId, setSelectedRoleId] = useState('')
+  const bulkDelete = useBulkDeleteUsers()
+  const selectedIds = Object.keys(rowSelection)
 
   const debouncedSearch = useDebounce(search)
   const { data: roles } = useQuery({ queryKey: ['roles'], queryFn: () => getRoles() })
@@ -90,26 +83,21 @@ export const UserManagement = (): React.ReactNode => {
   }
 
   const { data, isLoading, refetch, isRefetching } = useUsers(filters)
-  const deleteMutation = useDeleteUser()
-  const suspendMutation = useSuspendUser()
-  const unsuspendMutation = useUnsuspendUser()
-  const changeRoleMutation = useChangeUserRole()
 
   const columns = useMemo(
-    () =>
-      getUserColumns({
-        onViewDetail: (id) => {
-          setDetailUserId(id)
-          setDetailOpen(true)
-        },
-        onChangeRole: (id) => setChangeRoleUserId(id),
-        onSuspend: (id) => setSuspendUserId(id),
-        onUnsuspend: (id) => setUnsuspendUserId(id),
-        onDelete: (id) => setDeleteUserId(id),
+    () => [
+      ...(canDelete ? [getSelectColumn<UserWithRole>()] : []),
+      ...getUserColumns({
+        onViewDetail: (id) => openDialog(DIALOG_KEY.USER_DETAIL, id),
+        onChangeRole: (id) => openDialog(DIALOG_KEY.CHANGE_USER_ROLE, id),
+        onSuspend: (id) => openDialog(DIALOG_KEY.SUSPEND_USER, id),
+        onUnsuspend: (id) => openDialog(DIALOG_KEY.UNSUSPEND_USER, id),
+        onDelete: (id) => openDialog(DIALOG_KEY.DELETE_USER, id),
         canEdit,
         canDelete,
       }),
-    [canEdit, canDelete],
+    ],
+    [canEdit, canDelete, openDialog],
   )
 
   const handleSearchChange = (value: string): void => {
@@ -125,6 +113,14 @@ export const UserManagement = (): React.ReactNode => {
   const handleFilterClear = (): void => {
     setFilterValues({})
     resetPage()
+  }
+
+  const handleBulkDelete = async (): Promise<void> => {
+    const result = await bulkDelete.mutateAsync(selectedIds)
+    if (result.success) {
+      setRowSelection({})
+      setBulkDeleteOpen(false)
+    }
   }
 
   const inviteButton = canCreate ? (
@@ -150,13 +146,25 @@ export const UserManagement = (): React.ReactNode => {
       <DataTable
         columns={columns}
         data={data?.users ?? []}
+        getRowId={(row) => row.id}
         isLoading={isLoading}
         hasActiveFilters={hasActiveFilters}
         emptyTitle="No users found"
         emptyDescription="Try adjusting your search or filters."
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        bulkActions={
+          canDelete ? (
+            <DataTableBulkActions
+              selectedCount={selectedIds.length}
+              onDelete={() => setBulkDeleteOpen(true)}
+              onClear={() => setRowSelection({})}
+            />
+          ) : undefined
+        }
         pagination={data ? { page: data.page, limit, total: data.total, totalPages: data.totalPages } : undefined}
-        onPageChange={setPage}
-        onLimitChange={setLimit}
+        onPageChange={(p) => { setPage(p); setRowSelection({}) }}
+        onLimitChange={(l) => { setLimit(l); setRowSelection({}) }}
         toolbar={(columnCustomizer) => (
           <DataTableToolbar
             searchValue={search}
@@ -177,24 +185,15 @@ export const UserManagement = (): React.ReactNode => {
         )}
       />
 
-      <UserDetailSheet userId={detailUserId} open={detailOpen} onOpenChange={setDetailOpen} />
-
-      <UserActionDialogs
-        deleteUserId={deleteUserId}
-        setDeleteUserId={setDeleteUserId}
-        deleteMutation={deleteMutation}
-        suspendUserId={suspendUserId}
-        setSuspendUserId={setSuspendUserId}
-        suspendMutation={suspendMutation}
-        unsuspendUserId={unsuspendUserId}
-        setUnsuspendUserId={setUnsuspendUserId}
-        unsuspendMutation={unsuspendMutation}
-        changeRoleUserId={changeRoleUserId}
-        setChangeRoleUserId={setChangeRoleUserId}
-        selectedRoleId={selectedRoleId}
-        setSelectedRoleId={setSelectedRoleId}
-        changeRoleMutation={changeRoleMutation}
-        roles={roles}
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title="Delete Users"
+        description={`Are you sure you want to delete ${selectedIds.length} user${selectedIds.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => void handleBulkDelete()}
+        isLoading={bulkDelete.isPending}
       />
     </div>
   )

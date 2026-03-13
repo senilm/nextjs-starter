@@ -383,6 +383,38 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
   return { success: true }
 }
 
+export async function bulkDeleteUsers(userIds: string[]): Promise<ActionResult> {
+  const adminId = await requireAdmin('users.delete')
+
+  if (userIds.includes(adminId)) {
+    return { success: false, error: 'Cannot include yourself in bulk delete' }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const count = await tx.user.count({
+        where: { id: { in: userIds }, deletedAt: null },
+      })
+
+      if (count !== userIds.length) {
+        throw new Error('One or more users not found')
+      }
+
+      await tx.user.updateMany({
+        where: { id: { in: userIds }, deletedAt: null },
+        data: { deletedAt: new Date() },
+      })
+    })
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete users' }
+  }
+
+  await Promise.all(userIds.map((id) => invalidateUserSessions(id)))
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}
+
 export async function inviteUser(input: unknown): Promise<ActionResult> {
   const session = await requirePermission('users.create')
 

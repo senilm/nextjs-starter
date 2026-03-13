@@ -16,6 +16,7 @@ import {
   createRole,
   updateRole,
   deleteRole,
+  bulkDeleteRoles,
 } from '@/features/roles/actions'
 import type { RoleWithPermissions, PermissionGroup, ActionResult } from '@/features/roles/types'
 import type { CreateRoleInput, UpdateRoleInput } from '@/features/roles/validations'
@@ -99,6 +100,26 @@ export function useDeleteRole(): ReturnType<typeof useMutation<ActionResult, Err
     onError: () => {
       void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
       toast.error('Failed to delete role')
+    },
+  })
+}
+
+export function useBulkDeleteRoles(): ReturnType<typeof useMutation<ActionResult, Error, string[]>> {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteRoles(ids),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success('Roles deleted')
+        void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
+      } else {
+        toast.error(result.error ?? 'Failed to delete roles')
+      }
+    },
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: ROLES_KEY })
+      toast.error('Failed to delete roles')
     },
   })
 }

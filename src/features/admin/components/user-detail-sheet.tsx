@@ -12,17 +12,15 @@ import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { DetailPanelSkeleton } from '@/components/shared/loading-skeleton'
 import { LoadingTransition } from '@/components/shared/loading-transition'
-import { formatDate, formatDateTime } from '@/lib/format'
 import { useUserDetail } from '@/features/admin/hooks'
+import { formatDate, formatDateTime } from '@/lib/format'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 
-interface UserDetailSheetProps {
-  userId: string | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export const UserDetailSheet = ({ userId, open, onOpenChange }: UserDetailSheetProps): React.ReactNode => {
-  const { data: user, isLoading } = useUserDetail(userId)
+export const UserDetailSheet = (): React.ReactNode => {
+  const { openDialogs, closeDialog, getDialogData } = useDialogStore()
+  const isOpen = openDialogs[DIALOG_KEY.USER_DETAIL] ?? false
+  const userId = getDialogData<string>(DIALOG_KEY.USER_DETAIL)
+  const { data: user, isLoading } = useUserDetail(userId ?? null)
 
   const initials =
     user?.name
@@ -33,7 +31,7 @@ export const UserDetailSheet = ({ userId, open, onOpenChange }: UserDetailSheetP
       .slice(0, 2) ?? 'U'
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && closeDialog(DIALOG_KEY.USER_DETAIL)}>
       <SheetContent className="overflow-y-auto sm:max-w-lg">
         <SheetHeader>
           <SheetTitle>User Details</SheetTitle>

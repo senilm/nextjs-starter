@@ -6,26 +6,16 @@
 
 'use client'
 
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { DialogShell, DialogFooter } from '@/components/shared/dialog-shell'
 import { useDeleteRole } from '@/features/roles/hooks'
 import type { RoleWithPermissions } from '@/features/roles/types'
+import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
 
-interface DeleteRoleDialogProps {
-  role: RoleWithPermissions | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogProps): React.ReactNode => {
+export const DeleteRoleDialog = (): React.ReactNode => {
+  const { openDialogs, closeDialog, getDialogData } = useDialogStore()
+  const isOpen = openDialogs[DIALOG_KEY.DELETE_ROLE] ?? false
+  const role = getDialogData<RoleWithPermissions>(DIALOG_KEY.DELETE_ROLE)
   const deleteMutation = useDeleteRole()
 
   const isBlocked = role?.isSystem || (role?.userCount ?? 0) > 0
@@ -38,33 +28,34 @@ export const DeleteRoleDialog = ({ role, open, onOpenChange }: DeleteRoleDialogP
   const handleDelete = async (): Promise<void> => {
     if (!role || isBlocked) return
     const result = await deleteMutation.mutateAsync(role.id)
-    if (result.success) onOpenChange(false)
+    if (result.success) closeDialog(DIALOG_KEY.DELETE_ROLE)
   }
 
+  const description = isBlocked
+    ? blockReason ?? ''
+    : `Are you sure you want to delete "${role?.name}"? This action cannot be undone.`
+
   return (
-    <AlertDialog open={open} onOpenChange={(o) => !deleteMutation.isPending && onOpenChange(o)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Role</AlertDialogTitle>
-          <AlertDialogDescription>
-            {isBlocked
-              ? blockReason
-              : `Are you sure you want to delete "${role?.name}"? This action cannot be undone.`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
-          {!isBlocked && (
-            <Button
-              variant="destructive"
-              loading={deleteMutation.isPending}
-              onClick={() => void handleDelete()}
-            >
-              Delete
-            </Button>
-          )}
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DialogShell
+      open={isOpen}
+      onOpenChange={(o) => !deleteMutation.isPending && !o && closeDialog(DIALOG_KEY.DELETE_ROLE)}
+      title="Delete Role"
+      description={description}
+    >
+      <DialogFooter>
+        <Button variant="outline" disabled={deleteMutation.isPending} onClick={() => closeDialog(DIALOG_KEY.DELETE_ROLE)}>
+          Cancel
+        </Button>
+        {!isBlocked && (
+          <Button
+            variant="destructive"
+            loading={deleteMutation.isPending}
+            onClick={() => void handleDelete()}
+          >
+            Delete
+          </Button>
+        )}
+      </DialogFooter>
+    </DialogShell>
   )
 }

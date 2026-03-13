@@ -14,6 +14,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  bulkDeleteProjects,
 } from '@/features/projects/actions'
 import type {
   ProjectFilters,
@@ -134,6 +135,27 @@ export function useDeleteProject(): ReturnType<typeof useMutation<ActionResult, 
         }
       }
       toast.error('Failed to delete project')
+    },
+  })
+}
+
+export function useBulkDeleteProjects(): ReturnType<typeof useMutation<ActionResult, Error, string[]>> {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteProjects(ids),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success('Projects deleted')
+        void queryClient.invalidateQueries({ queryKey: PROJECTS_KEY })
+        void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      } else {
+        toast.error(result.error ?? 'Failed to delete projects')
+      }
+    },
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: PROJECTS_KEY })
+      toast.error('Failed to delete projects')
     },
   })
 }

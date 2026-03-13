@@ -1,29 +1,32 @@
 /**
  * @file projects-list.tsx
  * @module features/projects/components/projects-list
- * Projects table with search, status filter, and pagination.
+ * Projects table with search, status filter, pagination, and bulk delete.
  */
 
 'use client'
 
 import { useState, useMemo } from 'react'
+import type { RowSelectionState } from '@tanstack/react-table'
 import { FolderKanban } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar'
 import { DataTableFilter, type FilterField } from '@/components/data-table/data-table-filter'
-import { ConfirmDialog } from '@/components/shared/confirm-dialog'
+import { DataTableBulkActions } from '@/components/data-table/data-table-bulk-actions'
+import { getSelectColumn } from '@/components/data-table/data-table-select-column'
 import { PageShell } from '@/components/shared/page-shell'
 import { EmptyState } from '@/components/shared/empty-state'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { ViewToggle } from '@/components/shared/view-toggle'
 import { CreateProjectButton } from '@/features/projects/components/create-project-button'
 import { ProjectCard } from '@/features/projects/components/project-card'
+import { useProjects, useBulkDeleteProjects } from '@/features/projects/hooks'
+import { getProjectColumns } from '@/features/projects/components/project-columns'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { useDialogStore, DIALOG_KEY } from '@/stores/dialog-store'
-import { useProjects, useDeleteProject } from '@/features/projects/hooks'
-import { getProjectColumns } from '@/features/projects/components/project-columns'
-import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/features/projects/types'
+import { PROJECT_STATUSES, type ProjectStatus, type Project } from '@/features/projects/types'
 import { VIEW_MODE, type ViewMode } from '@/types/data-table'
 
 const STATUS_FILTER_OPTIONS = PROJECT_STATUSES.map((s) => ({
@@ -43,14 +46,16 @@ const FILTER_FIELDS: FilterField[] = [
 
 export const ProjectsList = (): React.ReactNode => {
   const { openDialog } = useDialogStore()
-  const deleteProjectMutation = useDeleteProject()
   const [viewMode, setViewMode] = useState<ViewMode>(VIEW_MODE.LIST)
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
-  const [deleteProject, setDeleteProject] = useState<Project | null>(null)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const { page, limit, setPage, setLimit, resetPage } = usePagination()
 
   const debouncedSearch = useDebounce(search)
+  const bulkDelete = useBulkDeleteProjects()
+  const selectedIds = Object.keys(rowSelection)
 
   const statusFilter = (filterValues.status as ProjectStatus) || undefined
   const activeFilterCount = Object.values(filterValues).filter(Boolean).length
@@ -63,12 +68,14 @@ export const ProjectsList = (): React.ReactNode => {
   })
 
   const columns = useMemo(
-    () =>
-      getProjectColumns({
+    () => [
+      getSelectColumn<Project>(),
+      ...getProjectColumns({
         onEdit: (project) => openDialog(DIALOG_KEY.EDIT_PROJECT, project),
-        onDelete: (project) => setDeleteProject(project),
+        onDelete: (project) => openDialog(DIALOG_KEY.DELETE_PROJECT, { id: project.id, name: project.name }),
       }),
-    [],
+    ],
+    [openDialog],
   )
 
   const handleSearchChange = (value: string): void => {
@@ -84,6 +91,14 @@ export const ProjectsList = (): React.ReactNode => {
   const handleFilterClear = (): void => {
     setFilterValues({})
     resetPage()
+  }
+
+  const handleBulkDelete = async (): Promise<void> => {
+    const result = await bulkDelete.mutateAsync(selectedIds)
+    if (result.success) {
+      setRowSelection({})
+      setBulkDeleteOpen(false)
+    }
   }
 
   const hasActiveFilters = !!debouncedSearch || activeFilterCount > 0
@@ -106,18 +121,28 @@ export const ProjectsList = (): React.ReactNode => {
         <DataTable
           columns={columns}
           data={data?.projects ?? []}
+          getRowId={(row) => row.id}
           isLoading={isLoading}
           hasActiveFilters={hasActiveFilters}
           emptyTitle="No projects found"
           emptyDescription="Create your first project to get started."
           viewMode={viewMode}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          bulkActions={
+            <DataTableBulkActions
+              selectedCount={selectedIds.length}
+              onDelete={() => setBulkDeleteOpen(true)}
+              onClear={() => setRowSelection({})}
+            />
+          }
           renderCard={(project) => (
             <ProjectCard
               key={project.id}
               project={project}
               index={data?.projects.indexOf(project) ?? 0}
               onEdit={(p) => openDialog(DIALOG_KEY.EDIT_PROJECT, p)}
-              onDelete={(p) => setDeleteProject(p)}
+              onDelete={(p) => openDialog(DIALOG_KEY.DELETE_PROJECT, { id: p.id, name: p.name })}
             />
           )}
           pagination={
@@ -125,8 +150,8 @@ export const ProjectsList = (): React.ReactNode => {
               ? { page: data.page, limit, total: data.total, totalPages: data.totalPages }
               : undefined
           }
-          onPageChange={setPage}
-          onLimitChange={setLimit}
+          onPageChange={(p) => { setPage(p); setRowSelection({}) }}
+          onLimitChange={(l) => { setLimit(l); setRowSelection({}) }}
           toolbar={(columnCustomizer) => (
             <DataTableToolbar
               searchValue={search}
@@ -150,18 +175,14 @@ export const ProjectsList = (): React.ReactNode => {
       )}
 
       <ConfirmDialog
-        open={!!deleteProject}
-        onOpenChange={(open) => !open && setDeleteProject(null)}
-        title="Delete project"
-        description={`Are you sure you want to delete "${deleteProject?.name}"? This action can be undone by an administrator.`}
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title="Delete Projects"
+        description={`Are you sure you want to delete ${selectedIds.length} project${selectedIds.length !== 1 ? 's' : ''}? This action cannot be undone.`}
         confirmLabel="Delete"
         variant="destructive"
-        onConfirm={async () => {
-          if (!deleteProject) return
-          await deleteProjectMutation.mutateAsync(deleteProject.id)
-          setDeleteProject(null)
-        }}
-        isLoading={deleteProjectMutation.isPending}
+        onConfirm={() => void handleBulkDelete()}
+        isLoading={bulkDelete.isPending}
       />
     </PageShell>
   )

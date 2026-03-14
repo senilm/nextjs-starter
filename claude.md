@@ -18,6 +18,9 @@ Next.js SaaS starter kit for CodeCanyon. Stack: Next.js 16.1, React 19, TypeScri
 - All user input validated with Zod on both client and server.
 - Imports ordered: React/Next → external packages → `@/lib` → `@/features` → `@/components` → `@/hooks` → `@/types`.
 - Use github mcp to perform github related actions
+- This project uses Tailwind CSS v4.2 with CSS-first configuration
+- No tailwind.config.js — all theme config is in CSS via @theme
+- Use the tailwindcss-mcp-server tools to verify utility classes when unsure
 
 ## Naming
 

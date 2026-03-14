@@ -6,8 +6,6 @@
 
 import { z, type ZodSchema } from 'zod/v3'
 
-import type { ActionResult } from '@/types/shared'
-
 export const emailSchema = z.string().email('Please enter a valid email address')
 
 export const passwordSchema = z

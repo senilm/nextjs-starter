@@ -1,8 +1,10 @@
 /**
  * @file testimonials.tsx
  * @module features/marketing/components/testimonials
- * Three testimonial cards with placeholder content.
+ * Three testimonial cards with avatars, star ratings, and decorative accents.
  */
+
+import { Star } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedSection } from '@/features/marketing/components/animated-section'
@@ -25,6 +27,8 @@ const TESTIMONIALS = [
   },
 ] as const
 
+const STAR_COUNT = 5
+
 export const Testimonials = (): React.ReactNode => {
   return (
     <section className="border-t bg-muted/30 py-24">
@@ -39,21 +43,49 @@ export const Testimonials = (): React.ReactNode => {
         </AnimatedSection>
 
         <div className="mt-16 grid gap-8 md:grid-cols-3">
-          {TESTIMONIALS.map((testimonial, index) => (
-            <AnimatedSection key={testimonial.name} delay={index * 0.1}>
-              <Card className="h-full">
-                <CardContent className="pt-6">
-                  <blockquote className="text-muted-foreground">
-                    &ldquo;{testimonial.quote}&rdquo;
-                  </blockquote>
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedSection>
-          ))}
+          {TESTIMONIALS.map((testimonial, index) => {
+            const initials = testimonial.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+
+            return (
+              <AnimatedSection key={testimonial.name} delay={index * 0.1}>
+                <Card className="relative h-full border-t-2 border-primary/40">
+                  <CardContent className="pt-6">
+                    {/* Star rating */}
+                    <div className="mb-3 flex gap-0.5">
+                      {Array.from({ length: STAR_COUNT }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className="size-4 fill-primary text-primary"
+                        />
+                      ))}
+                    </div>
+
+                    {/* Decorative quote mark */}
+                    <span className="pointer-events-none absolute top-4 left-4 font-serif text-6xl leading-none text-primary/10">
+                      &ldquo;
+                    </span>
+
+                    <blockquote className="relative text-muted-foreground">
+                      {testimonial.quote}
+                    </blockquote>
+
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedSection>
+            )
+          })}
         </div>
       </div>
     </section>

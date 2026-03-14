@@ -64,6 +64,11 @@ export const SignUpForm = () => {
 
   return (
     <div className="space-y-6">
+      <div className="space-y-1.5 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+        <p className="text-sm text-muted-foreground">Start building in minutes</p>
+      </div>
+
       <SocialButtons />
 
       <div className="relative">

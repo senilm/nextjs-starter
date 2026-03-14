@@ -15,9 +15,9 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useSubscriptionChart } from '@/features/admin/hooks'
 
 const chartConfig = {
-  free: { label: 'Free', color: 'hsl(var(--chart-1))' },
-  pro: { label: 'Pro', color: 'hsl(var(--chart-2))' },
-  business: { label: 'Business', color: 'hsl(var(--chart-3))' },
+  free: { label: 'Free', theme: { light: '#e26600', dark: '#f3821d' } },
+  pro: { label: 'Pro', theme: { light: '#d79628', dark: '#c38c37' } },
+  business: { label: 'Business', theme: { light: '#3c7ebe', dark: '#398ad6' } },
 } satisfies ChartConfig
 
 export const SubscriptionsChart = (): React.ReactNode => {

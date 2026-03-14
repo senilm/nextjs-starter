@@ -8,7 +8,7 @@
 
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { CreditCard } from 'lucide-react'
+import { Check, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -111,8 +111,9 @@ export const SubscriptionDetails = (): React.ReactNode => {
                 <p className="text-sm font-medium">Included features:</p>
                 <ul className="mt-2 space-y-1">
                   {(subscription?.plan.features as string[])?.map((feature) => (
-                    <li key={feature} className="text-sm text-muted-foreground">
-                      &bull; {feature}
+                    <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                      {feature}
                     </li>
                   ))}
                 </ul>

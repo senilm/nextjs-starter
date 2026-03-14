@@ -6,61 +6,61 @@
 
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabsContents } from '@/components/ui/tabs'
 import { PlanCard } from '@/features/marketing/components/plan-card'
 import { getActivePlans } from '@/features/billing/actions'
 
 export const PricingToggle = (): React.ReactNode => {
-  const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly')
-
   const { data: plans } = useQuery({
     queryKey: ['plans', 'active'],
     queryFn: getActivePlans,
   })
 
   return (
-    <div>
-      <div className="mx-auto mb-10 flex w-fit rounded-lg bg-muted p-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(period === 'monthly' && 'bg-background shadow-sm')}
-          onClick={() => setPeriod('monthly')}
-        >
-          Monthly
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(period === 'yearly' && 'bg-background shadow-sm')}
-          onClick={() => setPeriod('yearly')}
-        >
+    <Tabs defaultValue="monthly">
+      <TabsList className="mx-auto mb-10">
+        <TabsTrigger value="monthly">Monthly</TabsTrigger>
+        <TabsTrigger value="yearly">
           Yearly
-          <span className="ml-1 text-xs text-primary">Save 20%</span>
-        </Button>
-      </div>
+          <Badge variant="accent" className="ml-1.5 text-[10px] px-1.5 py-0">Save 20%</Badge>
+        </TabsTrigger>
+      </TabsList>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {plans?.map((plan) => (
-          <PlanCard
-            key={plan.id}
-            name={plan.name}
-            description={plan.description ?? ''}
-            price={
-              period === 'monthly'
-                ? Math.round((plan.monthlyPrice ?? 0) / 100)
-                : Math.round((plan.yearlyPrice ?? 0) / 100)
-            }
-            period={period}
-            features={plan.features as string[]}
-            highlighted={plan.key === 'pro'}
-          />
-        ))}
-      </div>
-    </div>
+      <TabsContents>
+        <TabsContent value="monthly">
+          <div className="grid gap-8 md:grid-cols-3">
+            {plans?.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                name={plan.name}
+                description={plan.description ?? ''}
+                price={Math.round((plan.monthlyPrice ?? 0) / 100)}
+                period="monthly"
+                features={plan.features as string[]}
+                highlighted={plan.key === 'pro'}
+              />
+            ))}
+          </div>
+        </TabsContent>
+        <TabsContent value="yearly">
+          <div className="grid gap-8 md:grid-cols-3">
+            {plans?.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                name={plan.name}
+                description={plan.description ?? ''}
+                price={Math.round((plan.yearlyPrice ?? 0) / 100)}
+                period="yearly"
+                features={plan.features as string[]}
+                highlighted={plan.key === 'pro'}
+              />
+            ))}
+          </div>
+        </TabsContent>
+      </TabsContents>
+    </Tabs>
   )
 }

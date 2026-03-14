@@ -1,7 +1,7 @@
 /**
  * @file features-grid.tsx
  * @module features/marketing/components/features-grid
- * Six feature cards in a 3x2 grid with staggered animations.
+ * Six feature cards in a 3x2 grid with hover interactions and staggered animations.
  */
 
 import {
@@ -64,10 +64,10 @@ export const FeaturesGrid = (): React.ReactNode => {
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, index) => (
-            <AnimatedSection key={feature.title} delay={index * 0.1}>
-              <Card className="h-full">
+            <AnimatedSection key={feature.title} delay={index * 0.08} variant="scaleUp">
+              <Card className="group h-full hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-200">
                 <CardHeader>
-                  <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all duration-200 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
                     <feature.icon className="size-5" />
                   </div>
                   <CardTitle>{feature.title}</CardTitle>

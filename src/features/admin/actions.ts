@@ -33,9 +33,9 @@ import type {
 } from '@/features/admin/types'
 
 const CHART_PLAN_COLORS: Record<string, string> = {
-  free: 'hsl(var(--chart-1))',
-  pro: 'hsl(var(--chart-2))',
-  business: 'hsl(var(--chart-3))',
+  free: '#e26600',
+  pro: '#d79628',
+  business: '#3c7ebe',
 }
 const MONTHS_IN_CHART = 12
 const DAYS_IN_SIGNUPS_CHART = 7
@@ -142,7 +142,7 @@ export async function getSubscriptionChartData(): Promise<SubscriptionChartData[
   return Object.entries(counts).map(([plan, count]) => ({
     plan,
     count,
-    fill: CHART_PLAN_COLORS[plan] ?? 'hsl(var(--chart-4))',
+    fill: CHART_PLAN_COLORS[plan] ?? '#8cbe81',
   }))
 }
 

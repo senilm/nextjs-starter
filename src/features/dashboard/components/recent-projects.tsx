@@ -21,8 +21,8 @@ import { useRecentProjects } from '@/features/dashboard/hooks'
 
 const STATUS_DOT_COLOR: Record<string, string> = {
   active: 'bg-emerald-500',
-  paused: 'bg-amber-500',
-  archived: 'bg-gray-400',
+  paused: 'bg-primary',
+  archived: 'bg-muted-foreground/50',
 }
 
 export const RecentProjects = (): React.ReactNode => {

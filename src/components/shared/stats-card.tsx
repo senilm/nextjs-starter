@@ -1,7 +1,7 @@
 /**
  * @file stats-card.tsx
  * @module components/shared/stats-card
- * Stats card with icon, title, value, optional trend indicator, subtitle, and alert variant.
+ * Stats card with icon, title, value, optional trend indicator, hover micro-interactions, and alert variant.
  */
 
 'use client'
@@ -37,11 +37,14 @@ export const StatsCard = ({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden py-0',
+        'group relative overflow-hidden py-0 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
         isAlert && 'border-destructive/20 bg-destructive/5',
         className,
       )}
     >
+      {/* Accent bar on hover */}
+      <div className="absolute left-0 top-0 h-full w-0.5 bg-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between">
           <p
@@ -55,7 +58,7 @@ export const StatsCard = ({
           {Icon && (
             <Icon
               className={cn(
-                'size-4',
+                'size-4 transition-transform duration-200 group-hover:scale-110',
                 iconColor ?? (isAlert ? 'text-destructive' : 'text-muted-foreground/60'),
               )}
             />

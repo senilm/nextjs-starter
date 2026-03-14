@@ -1,7 +1,7 @@
 /**
  * @file how-it-works.tsx
  * @module features/marketing/components/how-it-works
- * Three-step section: Clone, Customize, Deploy.
+ * Three-step section with numbered circles, connecting lines, and varied animations.
  */
 
 import { GitBranch, Settings, Rocket } from 'lucide-react'
@@ -14,18 +14,21 @@ const STEPS = [
     step: '01',
     title: 'Clone',
     description: 'Clone the repository and install dependencies with a single command.',
+    variant: 'slideLeft' as const,
   },
   {
     icon: Settings,
     step: '02',
     title: 'Customize',
     description: 'Configure your branding, plans, and features to match your product.',
+    variant: 'scaleUp' as const,
   },
   {
     icon: Rocket,
     step: '03',
     title: 'Deploy',
     description: 'Deploy to Vercel or any Node.js host and start acquiring customers.',
+    variant: 'slideRight' as const,
   },
 ] as const
 
@@ -42,13 +45,18 @@ export const HowItWorks = (): React.ReactNode => {
           </p>
         </AnimatedSection>
 
-        <div className="mt-16 grid gap-8 md:grid-cols-3">
+        <div className="relative mt-16 grid gap-8 md:grid-cols-3">
+          {/* Connecting line (desktop only) */}
+          <div className="pointer-events-none absolute top-7 left-[16.67%] right-[16.67%] hidden border-t-2 border-dashed border-primary/20 md:block" />
+
           {STEPS.map((step, index) => (
-            <AnimatedSection key={step.title} delay={index * 0.15} className="text-center">
-              <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <step.icon className="size-6" />
+            <AnimatedSection key={step.title} delay={index * 0.15} variant={step.variant} className="text-center">
+              <div className="relative">
+                <div className="relative z-10 mx-auto mb-4 flex size-14 items-center justify-center rounded-full border-2 border-primary bg-background text-primary font-mono text-lg font-bold">
+                  {step.step}
+                </div>
+                <step.icon className="mx-auto mb-3 size-5 text-muted-foreground" />
               </div>
-              <p className="text-sm font-semibold text-primary">{step.step}</p>
               <h3 className="mt-2 text-xl font-semibold">{step.title}</h3>
               <p className="mt-2 text-muted-foreground">{step.description}</p>
             </AnimatedSection>

@@ -1,10 +1,11 @@
 /**
  * @file footer.tsx
  * @module features/marketing/components/footer
- * Marketing footer with 4-column link grid and copyright notice.
+ * Marketing footer with logo, tagline, 4-column link grid, and copyright.
  */
 
 import Link from 'next/link'
+import { Zap } from 'lucide-react'
 
 import { APP_NAME } from '@/lib/config'
 
@@ -46,6 +47,19 @@ export const Footer = (): React.ReactNode => {
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Logo + tagline */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Zap className="size-4" />
+            </div>
+            <span className="text-lg font-bold tracking-tight">{APP_NAME}</span>
+          </div>
+          <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+            The production-ready Next.js starter kit for shipping your SaaS fast.
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {FOOTER_SECTIONS.map((section) => (
             <div key={section.title}>
@@ -55,7 +69,7 @@ export const Footer = (): React.ReactNode => {
                   <li key={link.href + link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                       {link.label}
                     </Link>

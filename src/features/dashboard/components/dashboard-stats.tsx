@@ -25,12 +25,14 @@ export const DashboardStats = (): React.ReactNode => {
             title="Total Projects"
             value={stats.totalProjects}
             icon={FolderKanban}
+            iconColor="text-primary"
             trend={STAT_TRENDS.totalProjects}
           />
           <StatsCard
             title="Active Projects"
             value={stats.activeProjects}
             icon={Activity}
+            iconColor="text-primary"
             trend={STAT_TRENDS.activeProjects}
           />
           <StatsCard

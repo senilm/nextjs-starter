@@ -24,18 +24,21 @@ export const AdminStats = (): React.ReactNode => {
             title="Total Users"
             value={stats.totalUsers.toLocaleString()}
             icon={Users}
+            iconColor="text-primary"
             trend={{ value: `${stats.usersTrend >= 0 ? '+' : ''}${stats.usersTrend}%`, label: 'vs last week', isPositive: stats.usersTrend >= 0 }}
           />
           <StatsCard
             title="Active Subscriptions"
             value={stats.activeSubscriptions.toLocaleString()}
             icon={CreditCard}
+            iconColor="text-primary"
             trend={{ value: `${stats.subscriptionsTrend >= 0 ? '+' : ''}${stats.subscriptionsTrend}%`, label: 'vs last month', isPositive: stats.subscriptionsTrend >= 0 }}
           />
           <StatsCard
             title="MRR"
             value={`$${stats.mrr.toLocaleString()}`}
             icon={DollarSign}
+            iconColor="text-primary"
             trend={{ value: `${stats.mrrTrend >= 0 ? '+' : ''}${stats.mrrTrend}%`, label: 'vs last month', isPositive: stats.mrrTrend >= 0 }}
           />
           <StatsCard

@@ -43,7 +43,7 @@ export const ProjectCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut', delay: index * 0.05 }}
     >
-      <Card className="h-full">
+      <Card className="h-full hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <CardHeader>
           <CardTitle className="truncate">{project.name}</CardTitle>
           <CardDescription className="line-clamp-2 min-h-10">

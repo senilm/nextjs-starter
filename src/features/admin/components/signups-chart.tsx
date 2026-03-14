@@ -15,7 +15,7 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useSignupChart } from '@/features/admin/hooks'
 
 const chartConfig = {
-  signups: { label: 'Signups', color: 'hsl(var(--chart-2))' },
+  signups: { label: 'Signups', theme: { light: '#e26600', dark: '#f3821d' } },
 } satisfies ChartConfig
 
 export const SignupsChart = (): React.ReactNode => {

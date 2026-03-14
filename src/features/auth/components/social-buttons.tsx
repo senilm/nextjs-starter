@@ -115,7 +115,7 @@ export const SocialButtons = () => {
           <Button
             key={provider.id}
             variant="outline"
-            className="w-full"
+            className="w-full hover:border-primary/30"
             onClick={() => handleSocialLogin(provider.id)}
             loading={loadingProvider === provider.id}
             disabled={loadingProvider !== null && loadingProvider !== provider.id}

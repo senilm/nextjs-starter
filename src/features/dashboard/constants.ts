@@ -48,6 +48,6 @@ export const ACTIVITY_CHART_DATA: ActivityDataPoint[] = [
 ]
 
 export const ACTIVITY_CHART_CONFIG = {
-  projects: { label: 'Projects', color: 'hsl(var(--chart-1))' },
-  views: { label: 'Page Views', color: 'hsl(var(--chart-2))' },
+  projects: { label: 'Projects', theme: { light: '#e26600', dark: '#f3821d' } },
+  views: { label: 'Page Views', theme: { light: '#d79628', dark: '#c38c37' } },
 } satisfies ChartConfig

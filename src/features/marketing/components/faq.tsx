@@ -1,9 +1,10 @@
 /**
  * @file faq.tsx
  * @module features/marketing/components/faq
- * FAQ section shell that passes data to FaqAccordion.
+ * FAQ section with accent badge label and left-aligned visual anchor.
  */
 
+import { Badge } from '@/components/ui/badge'
 import { AnimatedSection } from '@/features/marketing/components/animated-section'
 import { FaqAccordion } from '@/features/marketing/components/faq-accordion'
 
@@ -39,16 +40,17 @@ export const Faq = (): React.ReactNode => {
   return (
     <section className="py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <AnimatedSection className="text-center">
+        <AnimatedSection>
+          <Badge variant="accent" className="mb-3">FAQ</Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Frequently asked questions
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
             Got questions? We have answers.
           </p>
         </AnimatedSection>
 
-        <div className="mt-12">
+        <div className="mt-12 border-l-2 border-primary/20 pl-6">
           <FaqAccordion items={FAQ_ITEMS as unknown as { question: string; answer: string }[]} />
         </div>
       </div>

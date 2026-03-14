@@ -38,11 +38,11 @@ export const PlanCard = ({
     <Card
       className={cn(
         'relative flex flex-col',
-        highlighted && 'border-primary shadow-lg',
+        highlighted && 'border-primary shadow-lg ring-1 ring-primary/20 scale-[1.02] z-10',
       )}
     >
       {badge && (
-        <Badge className="absolute -top-3 right-4">
+        <Badge variant="accent" className="absolute -top-3 left-1/2 -translate-x-1/2">
           {badge}
         </Badge>
       )}

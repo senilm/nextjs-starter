@@ -19,12 +19,12 @@ interface BlogCardProps {
 export const BlogCard = ({ post }: BlogCardProps): React.ReactNode => {
   return (
     <Link href={paths.blog.post(post.slug)}>
-      <Card className="h-full transition-shadow hover:shadow-md">
+      <Card className="h-full hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-200">
         <CardHeader>
           {post.tags && post.tags.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1">
               {post.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge key={tag} variant="accent" className="text-xs">
                   {tag}
                 </Badge>
               ))}

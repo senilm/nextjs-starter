@@ -15,7 +15,7 @@ import { LoadingTransition } from '@/components/shared/loading-transition'
 import { useRevenueChart } from '@/features/admin/hooks'
 
 const chartConfig = {
-  revenue: { label: 'Revenue', color: 'hsl(var(--chart-1))' },
+  revenue: { label: 'Revenue', theme: { light: '#e26600', dark: '#f3821d' } },
 } satisfies ChartConfig
 
 export const RevenueChart = (): React.ReactNode => {

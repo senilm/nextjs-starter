@@ -49,7 +49,7 @@ export const SignUpForm = () => {
       name: data.name,
       email: data.email,
       password: data.password,
-      callbackURL: paths.auth.verifyEmail(),
+      callbackURL: paths.dashboard.home(),
     })
 
     setIsPending(false)
